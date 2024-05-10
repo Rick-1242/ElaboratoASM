@@ -24,43 +24,45 @@ uguali_len:
 
 _start:
 
-	movl $100, %eax
-	movl $1000, %ebx
 
-	cmp %ebx, %eax
 
-	je eax_ebx_uguali
-	jg eax_maggiore
+; 	movl $100, %eax
+; 	movl $1000, %ebx
 
-eax_minore:
+; 	cmp %ebx, %eax
 
-	movl $4, %eax
-	movl $0, %ebx
-	leal minore, %ecx
-	movl minore_len, %edx
-	int $0x80
+; 	je eax_ebx_uguali
+; 	jg eax_maggiore
 
-	jmp exit
+; eax_minore:
 
-eax_maggiore:
+; 	movl $4, %eax
+; 	movl $0, %ebx
+; 	leal minore, %ecx
+; 	movl minore_len, %edx
+; 	int $0x80
 
-	movl $4, %eax
-	movl $0, %ebx
-	leal maggiore, %ecx
-	movl maggiore_len, %edx
-	int $0x80
+; 	jmp exit
 
-	jmp exit
+; eax_maggiore:
 
-eax_ebx_uguali:
+; 	movl $4, %eax
+; 	movl $0, %ebx
+; 	leal maggiore, %ecx
+; 	movl maggiore_len, %edx
+; 	int $0x80
 
-	movl $4, %eax
-	movl $0, %ebx
-	leal uguali, %ecx
-	movl uguali_len, %edx
-	int $0x80
+; 	jmp exit
 
-	jmp exit
+; eax_ebx_uguali:
+
+; 	movl $4, %eax
+; 	movl $0, %ebx
+; 	leal uguali, %ecx
+; 	movl uguali_len, %edx
+; 	int $0x80
+
+; 	jmp exit
 
 exit:
 
