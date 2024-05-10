@@ -15,6 +15,9 @@ uguali:
 uguali_len:
 	.long . - uguali
 
+.section .bss
+    ordiniArr: 
+        .fill 40, 4, 0
 
 .section .text
 	.global _start
