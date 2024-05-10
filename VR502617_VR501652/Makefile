@@ -10,7 +10,7 @@ bin/pianificatore: obj/main.o obj/io.o
 obj/main.o: src/main.s
 	as $(AS_FLAGS) $(DEBUG) src/main.s -o obj/main.o
 
-obj/itoa.o: src/io.s
+obj/io.o: src/io.s
 	as $(AS_FLAGS) $(DEBUG) src/io.s -o obj/io.o
 
 
