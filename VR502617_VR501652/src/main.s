@@ -1,68 +1,35 @@
 .section .data
 
-maggiore:
-	.ascii "Il numero caricato in EAX è maggiore di quello caricato in EBX\n"
-maggiore_len:
-	.long . - maggiore
+ordiniArr:
+	.long 1, 2, 3, 4  
+	.long 5, 6, 7, 8   
+	.long 9, 10, 11, 12  
 
-minore:
-	.ascii "Il numero caricato in EAX è minore di quello caricato in EBX\n"
-minore_len:
-	.long . - minore
+OBJECT_SIZE = 4   # Numero di interi(elemnti) per oggeto(ordine) 4 elementi x 4 byte = 16 byte a oggetto
 
-uguali:
-	.ascii "I numeri caricati in EAX ed in EBX sono uguali\n"
-uguali_len:
-	.long . - uguali
+IDENTIFICATIVO_OFFSET = 0
+DURATA_OFFSET = 4
+SCANDEZA_OFFSET = 8
+PRIORITA_OFFSET = 12
 
 .section .bss
-    ordiniArr: 
-        .fill 40, 4, 0
+#ordiniArr: 
+    #.fill 40, 4, 0 # crete 40 4 bytre entries wiht 0 that will be modified by funcions in IO.s
+
 
 .section .text
 	.global _start
 
 _start:
+	movl $1, %eax  # eax serve da indice per l' array ordini arr, poi andara in .bss ma mi sto disperando quindi sto provando anche questa
+	leal ordiniArr(,%eax, 4), %ecx # Access first element of array eatch elemnt is 4 bytes
 
+	movl $4, %eax              # syscall number for sys_write
+    movl $1, %ebx              # file descriptor 1 (stdout)
+    movl $4, %edx              # number of bytes to print
+    int $0x80                  # call kernel
 
-
-; 	movl $100, %eax
-; 	movl $1000, %ebx
-
-; 	cmp %ebx, %eax
-
-; 	je eax_ebx_uguali
-; 	jg eax_maggiore
-
-; eax_minore:
-
-; 	movl $4, %eax
-; 	movl $0, %ebx
-; 	leal minore, %ecx
-; 	movl minore_len, %edx
-; 	int $0x80
-
-; 	jmp exit
-
-; eax_maggiore:
-
-; 	movl $4, %eax
-; 	movl $0, %ebx
-; 	leal maggiore, %ecx
-; 	movl maggiore_len, %edx
-; 	int $0x80
-
-; 	jmp exit
-
-; eax_ebx_uguali:
-
-; 	movl $4, %eax
-; 	movl $0, %ebx
-; 	leal uguali, %ecx
-; 	movl uguali_len, %edx
-; 	int $0x80
-
-; 	jmp exit
+	jmp exit
 
 exit:
 
