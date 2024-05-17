@@ -87,7 +87,7 @@ stampa:
 	movl   $4, %eax
 	movl   $1, %ebx
 	leal  car, %ecx		
-	movb    $1, %edx
+	movl    $1, %edx
 	int $0x80
 
 	popw   %bx			# recupera il contatore dei caratteri da 

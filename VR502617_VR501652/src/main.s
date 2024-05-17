@@ -16,6 +16,9 @@ ordiniArr:
 	.global _start
 
 _start:
+	movl $1,%ecx
+	# movl ordiniArr(,%ecx,4), %eax
+	# call itoa
 
 	call getParms
 

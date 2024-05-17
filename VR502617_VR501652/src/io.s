@@ -57,7 +57,7 @@ count_char:
 	xorl %edx, %edx
 
 iterate:
-	movb (%ecx,%edx), %al 			# mette il carattere della stringa in al
+	movb (%ecx,%edx), %al 			# mette il carattere della stringa in al  HOWWWWWW
 	testb %al, %al 					# se il carattere è 0 (\0) la stringa è finita
 	jz end_count				
 	incl %edx
