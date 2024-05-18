@@ -5,6 +5,8 @@ new_line_char:
 
 .section .text
 	.global getParms
+	.global count_char
+	.global print_par
 
 .type getParms, @function		# Dicardo la funzione getParms
                                 # al momento stmapa i parametri ottenuti in esecuzione 
@@ -51,7 +53,7 @@ print_par:
 
 
 # --------------------------------------
-.type count_char, @function			# conta da quanti caratteri è composta la stringa del parametro
+.type count_char, @function			# conta da quanti caratteri è composta la stringa in ecx
 									# il valore risultato è contenuto in edx
 count_char:
 	xorl %edx, %edx

@@ -30,9 +30,8 @@ PRIORITA_OFFSET = 3
 
 _start:
 	movl $0,%ebx
-	pushl ordiniArr + SCANDEZA_OFFSET(,%ebx, OBJECT_SIZE)
+	movb ordiniArr + SCANDEZA_OFFSET(,%ebx, OBJECT_SIZE), %al
 	call itoa # for output
-	addl $4, %esp
 
 
 	# call getParms

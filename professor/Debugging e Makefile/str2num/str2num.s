@@ -7,7 +7,7 @@
 
 .section .data
 
-numstr:
+string:
   .ascii "2203\n"
 
 .section .text
@@ -15,7 +15,7 @@ numstr:
 
 _start:
 
-  leal numstr, %esi
+  leal string, %esi
   movl $0, %ecx            # azzero il contatore
   movl $0, %ebx            # azzero il registro EBX
 
