@@ -1,31 +1,41 @@
 .section .data
-
+.align 4	# TODO do i need this?
 #---------Testo-------------
-menu: .ascii "Scelga l'algoritmo:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n"
+menu: .ascii "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\n"
 msgHPF: .ascii "Pianificazione HPF:\n"
 msgEDF: .ascii "Pianificazione EDF:\n"
+conclusione: .ascii "Conclusione:"
+penalty: .ascii "Penalty:"
 
 #---------Offset------------
-OBJECT_SIZE = 4   # Numero di interi(elemnti) per oggeto(ordine) 4 elementi x 4 byte = 16 byte a oggetto
+OBJECT_SIZE = 4   # Numero di interi(elemnti) per oggeto(ordine) 4 elementi x 1 byte = 4 byte a oggetto
 
 IDENTIFICATIVO_OFFSET = 0
-DURATA_OFFSET = 4
-SCANDEZA_OFFSET = 8
-PRIORITA_OFFSET = 12
+DURATA_OFFSET = 1
+SCANDEZA_OFFSET = 2
+PRIORITA_OFFSET = 3
 
+	ordiniArr: #.fill 40, 1, 0	# create 40 1 byte entries wiht 0 that will be modified by funcions
+								# So 1 object is 4 Bytes = .long = 32bits.
+		.rept 10
+			.byte 0  # field1 (1 byte)
+			.byte 1  # field2 (1 byte)
+			.byte 2  # field3 (1 byte)
+			.byte 3  # field4 (1 byte)
+    	.endr
 .section .bss
-ordiniArr: .fill 40, 4, 0 # create 40 4 byte entries wiht 0 that will be modified by funcions in IO.s
-
 
 .section .text
 	.global _start
 
 _start:
-	movl $1,%ecx
-	# movl ordiniArr(,%ecx,4), %eax
-	# call itoa
+	movl $0,%ebx
+	pushl ordiniArr + SCANDEZA_OFFSET(,%ebx, OBJECT_SIZE)
+	call itoa # for output
+	addl $4, %esp
 
-	call getParms
+
+	# call getParms
 
 
 

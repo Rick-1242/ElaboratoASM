@@ -10,7 +10,18 @@ car: .byte 0			# la variabile car e' dichiarata di tipo byte
 							# il numero da convertire deve essere
 							# stato caricato nel registro %eax
 
-itoa:   
+itoa: 
+	# Prologo GCC calling conventions and then some(I didnt want to chage the funcion but I need my registers thx)
+	push %ebp
+	movl %esp, %ebp
+	push %esi
+	push %edi
+	push %ebx
+	push %eax
+	push %ecx
+
+	xorl %eax, %eax 
+	movb 8(%ebp), %al	# carico il parametro passato in al TODO this is a big limitation.
 	movl   $0, %ecx		# carica il numero 0 in %ecx
 
 
@@ -114,5 +125,12 @@ fine_itoa:
 	mov    $1, %edx
 	int $0x80
 
-	ret
+	# GCC calling convetions
+	pop %ecx
+	pop %eax
+	pop %edx
+	pop %edi
+	pop %esi
+	pop %ebp
 
+	ret
