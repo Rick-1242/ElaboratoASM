@@ -40,10 +40,10 @@ _NANerr:						# Stampa NAN stderr e termina la funzione
 _fine__atoi:
 
 	# GCC calling convetions
-	pop %edx
+    pop %edx
 	pop %ecx
 	pop %eax
-	pop %edx
+	pop %ebx
 	pop %edi
 	pop %esi
   	movl %ebp, %esp 

@@ -119,25 +119,24 @@ _readLoop:		# Gets and converts the data from the file to our array.
     mov $buffer, %ecx   # Buffer di input
     mov $1, %edx        # Lunghezza massima
     int $0x80
-	
+
     cmp $0, %eax        # ERROR or EOF check
     jle _closeFile
     
     # Controllo se ho una nuova linea
     movb buffer, %al    # copio il carattere dal buffer ad AL
     cmpb newline, %al   # confronto AL con il carattere \n
-    jne _print_line     # se sono diversi stampo la linea
+    jne _printChar     # se sono diversi stampo la linea
     incw lines          # altrimenti, incremento il contatore
 
 	# Put data into array
 	# jmp menu
 
-_print_line: # this will put data into array ig
-    # Stampa il contenuto della riga
-    mov $4, %eax        # syscall write
-    mov $1, %ebx        # File descriptor standard output (stdout)
-    mov $buffer, %ecx   # Buffer di output
-    int $0x80           # Interruzione del kernel
+_printChar: # this will put data into array ig
+	pushl %edx
+	pushl $buffer
+	call _myPrint
+	addl $8, %esp
 
     jmp _readLoop      # Torna alla lettura del file
 

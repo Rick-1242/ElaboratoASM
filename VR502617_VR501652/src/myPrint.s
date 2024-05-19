@@ -1,11 +1,15 @@
-.section .data
-.secion .text
-    .globl myPrint
+.section .data # TODO: Rember to cean up all the push and pop before turnin in the project
+.section .text
+    .globl _myPrint
     
-.type myPrint, @function
-myPrint:
-    pushl %ebp # store the current value of EBP on the stack
-    movl %esp, %ebp # Make EBP point to top of stack
+.type _myPrint, @function
+_myPrint:
+    pushl %ebp 
+    movl %esp, %ebp 
+	push %ebx
+	push %eax
+	push %ecx
+	push %edx
 
     # Write syscall
     movl $4, %eax # syscall number for write()
@@ -14,6 +18,10 @@ myPrint:
     movl 12(%ebp), %edx # number of bytes to write
     int $0x80
 
-    movl %ebp, %esp # Restore the old value of ESP
-    popl %ebp # Restore the old value of EBP
-    ret # return
+    pop %edx
+	pop %ecx
+	pop %eax
+	pop %ebx
+    movl %ebp, %esp 
+    popl %ebp 
+    ret 
