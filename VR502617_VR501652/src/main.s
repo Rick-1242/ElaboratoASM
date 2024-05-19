@@ -2,7 +2,9 @@
 # .align 4	# do i need this?
 #---------Temp--------------
 fd: .int 0
-filename: .ascii "Both.txt"
+buffer: .string ""       # Spazio per il buffer di input
+newline: .byte 10        # Valore del simbolo di nuova linea
+lines: .int 0            # Numero di linee
 #---------Testo-------------
 menu: .ascii "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\n"
 menu_len: .long . - menu
@@ -47,12 +49,11 @@ _start:
 	# call getArgs
 
 	## Get arguments
-	popl %edx # Non ci serve
-	popl %edx
-	popl %edx # argc[0]
-	popl %edx # argc[1]
-	testl %edx, %edx
-	jl _noArgsExit
+	popl %ebx # Non ci serve
+	popl %ebx # argc[0]
+	popl %ebx # argc[1]
+	testl %ebx, %ebx
+	je _noArgsExit
 
 	jmp _openFile
 
@@ -89,36 +90,59 @@ _noArgsExit:		# Exit task for when Args is not provided or is wrong
 
 
 #------------File processing-------------------
-_openFile: 				# The file name has too be in %edx
-    movl $5, %eax        # syscall open
-    movl $filename, %ebx # Nome del file
-    movl $0, %ecx		# Modalità di apertura (O_RDONLY)
+_openFile:
+    mov $5, %eax        # syscall open
+						# Nome del file gia in ebx
+    mov writeFile, %ecx	# Modalità di apertura (O_RDONLY)
     int $0x80           # Interruzione del kernel
 
     # Se c'è un errore, esce
-    cmpl $0, %eax
+    cmp $0, %eax
     jl _noArgsExit
 
-    movl %eax, fd      # Salva il file descriptor in ebx
+    mov %eax, fd      # Salva il file descriptor in ebx
 
-	jmp _closeFile
-
-	# JMP to _readLoop or to _writeLoop based on writeFile
+ 	# JMP to _readLoop or to _writeLoop based on writeFile
+	cmpl $1, writeFile			# Compare writeFile with 1
+    jl _readLoop				# Jump to _readLoop if writeFile < 1
+    jmp _writeLoop   
 
 _closeFile: 
     mov $6, %eax        # syscall close
     mov fd, %ecx      	# File descriptor
     int $0x80           # Interruzione del kernel
-	jmp _exit
+	jmp _exit   		# TODO: this is temporary. HAS TO BE REMOVED 
 
-# _readLoop:	# Gets and converts the data from the file to our array.
-	# jmp closeFile
+_readLoop:		# Gets and converts the data from the file to our array.
+    mov $3, %eax        # syscall read
+    mov fd, %ebx        # File descriptor
+    mov $buffer, %ecx   # Buffer di input
+    mov $1, %edx        # Lunghezza massima
+    int $0x80
+	
+    cmp $0, %eax        # ERROR or EOF check
+    jle _closeFile
+    
+    # Controllo se ho una nuova linea
+    movb buffer, %al    # copio il carattere dal buffer ad AL
+    cmpb newline, %al   # confronto AL con il carattere \n
+    jne _print_line     # se sono diversi stampo la linea
+    incw lines          # altrimenti, incremento il contatore
+
+	# Put data into array
 	# jmp menu
 
-# _writeLoop:	# Prints and converts the data form array to our file.
+_print_line: # this will put data into array ig
+    # Stampa il contenuto della riga
+    mov $4, %eax        # syscall write
+    mov $1, %ebx        # File descriptor standard output (stdout)
+    mov $buffer, %ecx   # Buffer di output
+    int $0x80           # Interruzione del kernel
+
+    jmp _readLoop      # Torna alla lettura del file
+
+_writeLoop:	# Prints and converts the data form array to our file.
 	# jmp closeFile
 	# jmp menu 
-	
-
 
 # TASK 1 rewrite all funcions to return eax as by GCC calling conventions.

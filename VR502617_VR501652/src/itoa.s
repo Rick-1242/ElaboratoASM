@@ -21,7 +21,7 @@ _itoa:
 	push %ecx
 
 	# xorl %eax, %eax 
-	# movb 8(%ebp), %al	# carico il parametro passato in al TODO this is a big limitation. HAS BEEN REMOVED RN
+	# movb 8(%ebp), %al	# carico il parametro passato in al TODO: this is a big limitation. HAS BEEN REMOVED RN
 	movl   $0, %ecx		# carica il numero 0 in %ecx
 
 

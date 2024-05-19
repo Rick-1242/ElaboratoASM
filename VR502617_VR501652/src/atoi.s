@@ -20,7 +20,7 @@ _atoi:
 	push %ecx
 	push %edx
 
-	# TODO have to find a way to pass the number in .ascii and thats complex. involeves loops fuck me sideways thx
+	# FIXME: have to find a way to pass the number in .ascii and thats complex. involeves loops fuck me sideways thx
 	# fould a way. The caller has to push the address of the scring to to the stack
 	# this by doing 
 	# leal string, %eax
