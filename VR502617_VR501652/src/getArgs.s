@@ -4,24 +4,22 @@ new_line_char:
 	.byte 10
 
 .section .text
-	.global getParms
+	.global getArgs
 	.global count_char
 	.global print_par
 
-.type getParms, @function		# Dicardo la funzione getParms
-                                # al momento stmapa i parametri ottenuti in esecuzione 
-                                # takes ecx  and prints it
-
-                                # TODO in futuro li da indietro
+.type getArgs, @function		# getArgs takes arguments and gives them back as 
 
 
-getParms:               # elimino i primi due valori nello stack
+getArgs:               # elimino i primi due valori nello stack
 	popl %ecx			# Contiene il numero dei parametri totali
 	popl %ecx
+	popl %ecx
+
 
 handle_par:
 	popl %ecx			# Recupera l'indirizzo della stringa relativa al  parametro
-	testl %ecx, %ecx	# controlla se EAX =  0 (NULL)
+	testl %ecx, %ecx	# controlla se ECX =  0 (NULL)
 	jz fine
 	call print_par		# stampa il parametro
 	jmp handle_par 		# ciclo nuovamente 

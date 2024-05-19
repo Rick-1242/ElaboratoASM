@@ -21,7 +21,12 @@ atoi:
 	push %edx
 
 	# TODO have to find a way to pass the number in .ascii and thats complex. involeves loops fuck me sideways thx
+	# fould a way. The caller has to push the address of the scring to to the stack
+	# this by doing 
+	# leal string, %eax
+	# pushl %eax
 
+	
 	jmp fine_atoi
 
 NANerr:						# Stampa NAN stderr e termina la funzione

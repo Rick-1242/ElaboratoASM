@@ -11,11 +11,11 @@ car: .byte 0			# la variabile car e' dichiarata di tipo byte
 							# stato caricato nel registro %eax
 
 itoa: 
-	# Prologo GCC calling conventions and then some(I didnt want to chage the funcion but I need my registers thx)
+	# Prologo GCC calling conventions and then some(/I need my registers thx)
 	push %ebp
 	movl %esp, %ebp
-	push %esi
-	push %edi
+	# push %esi
+	# push %edi
 	push %ebx
 	push %eax
 	push %ecx
@@ -129,8 +129,9 @@ fine_itoa:
 	pop %ecx
 	pop %eax
 	pop %edx
-	pop %edi
-	pop %esi
-	pop %ebp
+	# pop %edi
+	# pop %esi
+  	movl %ebp, %esp 
+  	pop %ebp      
 
 	ret
