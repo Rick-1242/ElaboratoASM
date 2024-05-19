@@ -3,14 +3,14 @@
 car: .byte 0			# la variabile car e' dichiarata di tipo byte
 
 .section .text
-	.global itoa
+	.global _itoa
 
-.type itoa, @function		# dichiarazione della funzione itoa che
+.type _itoa, @function		# dichiarazione della funzione _itoa che
 							# converte un intero in una stringa
 							# il numero da convertire deve essere
 							# stato caricato nel registro %eax
 
-itoa: 
+_itoa: 
 	# Prologo GCC calling conventions and then some(/I need my registers thx)
 	push %ebp
 	movl %esp, %ebp
@@ -25,11 +25,11 @@ itoa:
 	movl   $0, %ecx		# carica il numero 0 in %ecx
 
 
-continua_a_dividere:
+_continua_a_dividere:
 
 	cmpl   $10, %eax	# confronta 10 con il contenuto di %eax
 
-	jge dividi			# salta all'etichetta dividi se %eax e'
+	jge _dividi			# salta all'etichetta _dividi se %eax e'
 						# maggiore o uguale a 10
 
 	pushl %eax			# salva nello stack il contenuto di %eax
@@ -43,10 +43,10 @@ continua_a_dividere:
 						# il numero di cifre che sono state 
 						# caricate nello stack
 
-	jmp stampa			# salta all'etichetta stampa
+	jmp _stampa			# salta all'etichetta _stampa
 
 
-dividi:
+_dividi:
 
 	movl  $0, %edx		# carica il numero 0 in %edx
 
@@ -63,18 +63,18 @@ dividi:
 	incl   %ecx			# incrementa il contatore delle cifre 
 						# salvate nello stack
 
-	jmp	continua_a_dividere 
+	jmp	_continua_a_dividere 
 
 	
-stampa:
+_stampa:
 
 	cmpl   $0, %ebx		# controlla se ci sono ancora caratteri da 
-						# stampare
+						# _stampare
 
-	je fine_itoa		# se %ebx=0 ho stampato tutto salto alla 
+	je _fine__itoa		# se %ebx=0 ho _stampato tutto salto alla 
 						# fine della funzione
 
-	popl  %eax			# preleva l'elemento da stampare dallo stack
+	popl  %eax			# preleva l'elemento da _stampare dallo stack
 
 	movb  %al, car		# memorizza nella variabile car il valore 
 						# contenuto negli 8 bit meno significativi 
@@ -87,10 +87,10 @@ stampa:
 						# carattere 0 (zero)
   
 	decl   %ebx			# decrementa di 1 il numero di cifre da 
-						# stampare
+						# _stampare
   
 	pushw %bx			# salviamo il valore di %bx nello stack 
-						# poiche' per effettuare la stampa dobbiamo 
+						# poiche' per effettuare la _stampa dobbiamo 
 						# modificare i valori dei registri come 
 						# richiesto dalla funzione del sistema 
 						# operativo write
@@ -102,18 +102,18 @@ stampa:
 	int $0x80
 
 	popw   %bx			# recupera il contatore dei caratteri da 
-						# stampare salvato nello stack prima della 
+						# _stampare salvato nello stack prima della 
 						# chiamata alla funzione write
   
-	jmp   stampa		# ritorna all'etichetta stampa per stampare 
+	jmp   _stampa		# ritorna all'etichetta _stampa per _stampare 
 						# il prossimo carattere. Notare che il 
 						# blocco diistruzioni compreso tra 
-						# l'etichetta stampa e l'istruzione jmp 
-						# stampa e' un classico esempio di come 
+						# l'etichetta _stampa e l'istruzione jmp 
+						# _stampa e' un classico esempio di come 
 						# creare un ciclo while in assembly
 
 
-fine_itoa:
+_fine__itoa:
 
 	movb  $10, car		# copia nella variabile car il codice ascii 
 						# del carattere line feed (per andare a 
