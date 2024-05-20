@@ -1,6 +1,6 @@
 # per convertire i caratteri in numero si utilizza la formula ricorsiva
 #
-# 10*( 10*( 10*d + d ) + d ) + d
+# 10*( 10*( 10*  + d ) + d ) + d
 #             N-1 N-2   N-3   N-4
 #
 
