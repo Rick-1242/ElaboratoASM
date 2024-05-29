@@ -1,6 +1,6 @@
 .section .data
 # .align 4	# do i need this?
-#---------Temp--------------
+#---------File I/O--------------
 fd: .int 0
 buffer: .ascii ""       # Spazio per il buffer di input
 newline: .byte 10       # Valore del simbolo di nuova linea
@@ -37,10 +37,10 @@ ordiniArr: #.fill 40, 1, 0	# create 40 1 byte entries wiht 0 that will be modifi
 	.endr
 
 .section .bss
+	tempRis: .byte 0
 	writeFile: .long 0
-	row: .int 0
-	col: .int 0
-	temp: .byte 0
+	row: .int 0			# legge solo 255 righe é una limitazione
+	col: .int 0			# TODO: maybe remove and use a reg
 
 
 
@@ -96,37 +96,34 @@ _noArgsExit:		# Exit task for when Args is not provided or is wrong
 
 #------------File processing-------------------
 _openFile:
-    mov $5, %eax        # syscall open
+	xorl %ecx, %ecx		# might not be nessecary TODO:
+    movl $5, %eax       # syscall open
 						# Nome del file gia in ebx
-    mov writeFile, %ecx	# Modalità di apertura (O_RDONLY)
+    movb writeFile, %cl	# Modalità di apertura (O_RDONLY)
     int $0x80
 
     # Se c'è un errore, esce
     cmpl $0, %eax
     jl _noArgsExit
 
-    mov %eax, fd
-
-	# Riplusco le variabili per scrollare
-	movw $0, row
-	movw $0, col
+    movl %eax, fd
 
  	# JMP to _readLoop or to _writeLoop based on writeFile
-	cmpl $1, writeFile
+	cmpb $1, writeFile
     jl _readLoop
     jmp _writeLoop   
 
 _closeFile: 
-    mov $6, %eax        # syscall close
-    mov fd, %ecx
+    movl $6, %eax        # syscall close
+    movl fd, %ecx
     int $0x80
-	jmp _exit   		# TODO: this is temporary. HAS TO BE REMOVED 
+	jmp _exit   		# TODO: this is tempRisorary. HAS TO BE REMOVED  Will be jmp menu
 
 _readLoop:		# Gets and converts the data from the file to our array.
-    mov $3, %eax        # syscall read
-    mov fd, %ebx        # File descriptor
-    mov $buffer, %ecx
-    mov $1, %edx        # Lenght
+    movl $3, %eax        # syscall read
+    movl fd, %ebx        # File descriptor
+    movl $buffer, %ecx
+    movl $1, %edx        # Lenght
     int $0x80
 
     cmpl $0, %eax        # ERROR or EOF check
@@ -152,24 +149,27 @@ _getLine: # this will put data into array ig
 	cmpb sep, %bl		# Check if the character is a separator
     je _sepDetected		# If comma, move to the next string
 
-	# Not sure if it works we need eax to go into a temp variable
-
 	subb $48, %bl
   	movl $10, %edx
-  	mulb %dl			# EBX = EBX * 10
-  	addl %ebx, temp		# Risultato é in temp
+  	mulb %dl			# EDX = EDX * 10
+  	addb %bl, tempRis		# Risultato é in tempRis
 
     jmp _readLoop      # Torna alla lettura del file
 
 _sepDetected:
 	xorl %eax, %eax
-	movl col, %eax
-	mov temp, ordiniArr + ??(,%eax, OBJECT_SIZE)		#NO GOOD
-	movb $0, temp
+	movl row, %eax #	non dovrebbe essere la riga?
+	movb tempRis, %cl
+	movb %cl, ordiniArr + col(,%eax, OBJECT_SIZE)		#NO GOOD It doesnt put it a the right place, we need to stop using tempRis and use %ecx cant move memory to memory
+	movb $0, tempRis			# Azzero tempRis per il prossimo valore e anche if ";;" allora assumo 0 DOCS
 	incw col
 	jmp _readLoop
 
 _writeLoop:	# Prints and converts the data form array to our file.
+	# Riplusco le variabili per scrollare
+	movw $0, row
+	movw $0, col
+
 	# ripulisci row e colonne(%ecx) first
 	# jmp closeFile
 	# jmp menu 
