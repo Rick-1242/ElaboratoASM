@@ -1,10 +1,11 @@
 .section .data # TODO: Rember to cean up all the push and pop before turnin in the project
 .section .text
     .globl _myPrint
+    # .globl _closeFile
     
 .type _myPrint, @function
 _myPrint:
-    pushl %ebp 
+    push %ebp 
     movl %esp, %ebp 
 	push %ebx
 	push %eax
@@ -23,5 +24,23 @@ _myPrint:
 	pop %eax
 	pop %ebx
     movl %ebp, %esp 
-    popl %ebp 
+    pop %ebp 
     ret 
+
+# .type _closeFile, @function
+# _closeFile:
+#     push %ebp 
+#     movl %esp, %ebp 
+#     push %eax
+#     push %ecx
+
+#     movl $6, %eax        # syscall close
+#     movl 8(%ebp), %ecx
+#     int $0x80
+
+#     pop %ecx
+#     pop %eax
+#     movl %ebp, %esp 
+#     pop %ebp
+#     ret
+

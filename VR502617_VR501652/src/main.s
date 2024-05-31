@@ -1,7 +1,7 @@
 .section .data
 # .align 4	# do i need this?
 #---------File I/O--------------
-fd: .int 0
+fd: .long 0
 buffer: .ascii ""       # Spazio per il buffer di input
 newline: .byte 10       # Valore del simbolo di nuova linea
 sep: .byte 44			# Ovvero ","
@@ -94,7 +94,7 @@ _noArgsExit:		# Exit task for when Args is not provided or is wrong
 
 
 
-#------------File processing-------------------
+#------------File processing------------------- This might become all a big funcion that returns in _closeFile
 _openFile:
 	xorl %ecx, %ecx		# might not be nessecary TODO:
     movl $5, %eax       # syscall open
@@ -113,46 +113,60 @@ _openFile:
     jl _readLoop
     jmp _writeLoop   
 
-_closeFile: 
+_closeFile:
     movl $6, %eax        # syscall close
     movl fd, %ecx
     int $0x80
-	jmp _exit   		# TODO: this is tempRisorary. HAS TO BE REMOVED  Will be jmp menu
+	jmp menu
 
 _readLoop:		# Gets and converts the data from the file to our array.
+				# ebx buffer , ebx = 48
+				# edx buffer_len, edx = 10
+				# ecx count
+				# eax 
+	pushl %ecx
     movl $3, %eax        # syscall read
     movl fd, %ebx        # File descriptor
     movl $buffer, %ecx
     movl $1, %edx        # Lenght
     int $0x80
+	popl %ecx
 
-    cmpl $0, %eax        # ERROR or EOF check
+    cmpl $0, %eax        # ERROR or EOF check -> close and back to menu
     jle _closeFile
-    
-    # New line check
-	xorl %ebx, %ebx
-    movb buffer, %bl
-    cmpb newline, %bl
-    jne _getLine
-    incw row
-	movw $0, col
 
-	# Put data into array
-	# jmp menu
 
-_getLine: # this will put data into array ig
+     
+    # New line check Non importa perche e sequenziale scrivere nel array
+	# xorl %ebx, %ebx
+    # movb buffer, %bl
+    # cmpb newline, %bl   
+    # jne _getLine 
+    # incw row
+	# movw $0, col
+
+# TODO: we need a way to check if its a number 
+
+
+# _getLine:
 	pushl %edx
 	pushl $buffer
 	call _myPrint
 	addl $8, %esp
 
+	xorl %ebx, %ebx		# Move buffer into clean reg to cmp
+    movb buffer, %bl
+
+    cmpb newline, %bl   # New line has to be treate like sep
+    je _sepDetected	 
 	cmpb sep, %bl		# Check if the character is a separator
     je _sepDetected		# If comma, move to the next string
 
+
 	subb $48, %bl
   	movl $10, %edx
-  	mulb %dl			# EDX = EDX * 10
-  	addb %bl, tempRis		# Risultato é in tempRis
+  	mulb %dl			# DL = DL * 10
+  	addb %bl, tempRis	# tempRis = tempRis + DL
 
     jmp _readLoop      # Torna alla lettura del file
 
