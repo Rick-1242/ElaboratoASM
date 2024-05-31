@@ -135,48 +135,32 @@ _readLoop:		# Gets and converts the data from the file to our array.
     cmpl $0, %eax        # ERROR or EOF check -> close and back to menu
     jle _closeFile
 
+	# TODO: we need a way to check if its a number 
 
-     
-    # New line check Non importa perche e sequenziale scrivere nel array
-	# xorl %ebx, %ebx
-    # movb buffer, %bl
-    # cmpb newline, %bl   
-    # jne _getLine 
-    # incw row
-	# movw $0, col
-
-# TODO: we need a way to check if its a number 
-
-
-# _getLine:
-	pushl %edx
+	pushl %edx			# print(buffer)
 	pushl $buffer
 	call _myPrint
 	addl $8, %esp
 
-	xorl %ebx, %ebx		# Move buffer into clean reg to cmp
+	xorl %ebx, %ebx
     movb buffer, %bl
-
-    cmpb newline, %bl   # New line has to be treate like sep
+    cmpb newline, %bl   # New line has to be treated like sep
     je _sepDetected	 
 	cmpb sep, %bl		# Check if the character is a separator
-    je _sepDetected		# If comma, move to the next string
+    je _sepDetected		# If sep, move to the next string
 
-
+	# ascii -> int
 	subb $48, %bl
   	movl $10, %edx
   	mulb %dl			# DL = DL * 10
   	addb %bl, tempRis	# tempRis = tempRis + DL
 
-    jmp _readLoop      # Torna alla lettura del file
+    jmp _readLoop
 
 _sepDetected:
-	xorl %eax, %eax
-	movl row, %eax #	non dovrebbe essere la riga?
-	movb tempRis, %cl
-	movb %cl, ordiniArr + col(,%eax, OBJECT_SIZE)		#NO GOOD It doesnt put it a the right place, we need to stop using tempRis and use %ecx cant move memory to memory
-	movb $0, tempRis			# Azzero tempRis per il prossimo valore e anche if ";;" allora assumo 0 DOCS
-	incw col
+	movb tempRis, %al
+	movb %al, ordiniArr(,%ecx, 1)	#NO GOOD It doesnt put it a the right place, we need to stop using tempRis and use %ecx cant move memory to memory
+	movb $0, tempRis				# Azzero tempRis per il prossimo valore e anche if ";;" allora assumo 0 DOCS
 	jmp _readLoop
 
 _writeLoop:	# Prints and converts the data form array to our file.
