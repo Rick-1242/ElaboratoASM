@@ -31,7 +31,7 @@ _myPrint:
     pop %ebp 
     ret 
 
-.type _myPrint, @function   # pushl msg_len     msg_len<int>
+.type _mySTDERR, @function   # pushl msg_len     msg_len<int>
 	                        # pushl $msg        msg<char *>
 	                        # call _myPrint
 	                        # addl $8, %esp     reset esp
