@@ -5,8 +5,10 @@ fd: .long 0
 buffer: .ascii ""       # Spazio per il buffer di input
 newline: .byte 10       # Valore del simbolo di nuova linea
 sep: .byte 44			# Ovvero ","
+asciiNine: .byte 57
+asciiZero: .byte 48
 #---------Testo-------------
-menu: .ascii "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\n Input:"
+menu: .ascii "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
 menu_len: .long . - menu
 msgHPF: .ascii "Pianificazione HPF:\n"
 msgEDF: .ascii "Pianificazione EDF:\n"
@@ -89,7 +91,7 @@ _mainMENU:
 	movl $10, %edx
 	int $0x80
 	
-	movlb userInput, %al	# Only need the first byte
+	movb userInput, %al		# Only need the first byte
 	cmpb $51, %al			# userInput = "3" : exit
 	je _exit
 	cmpb $50, %al
@@ -112,6 +114,30 @@ _noArgsExit:		# Exit task for when Args is not provided or is wrong
 	call _mySTDERR
 	addl $8, %esp 
 	jmp _exit
+
+#------------Algo calls-------------------
+_HPF:
+	pushl msgEDFHPF_len
+	leal msgHPF, %eax
+	pushl %eax
+	call _myPrint
+	addl $8, %esp
+
+	# Pass Parms and call funcion
+
+	jmp _mainMENU
+
+_EDF:
+	pushl msgEDFHPF_len
+	leal msgEDF, %eax
+	pushl %eax
+	call _myPrint
+	addl $8, %esp
+
+	# Pass Parms and call funcion
+
+	jmp _mainMENU
+
 
 #------------File processing------------------- This might become all a big funcion that returns in _closeFile
 _openFile:
@@ -168,10 +194,10 @@ _readLoop:		# Gets and converts the data from the file to our array.
 	cmpb sep, %bl		
     je _storeTemp		# If sep,storeTemp and skip char
 
-	# NAN check
-	cmpb $57, %bl
+	# NAN check TODO: not working for some reason
+	cmpb asciiNine, %bl 	
 	ja _NANerr
-	cmpb $48, %bl
+	cmpb asciiZero, %bl
 	jb _NANerr
 
 	# ascii -> int
@@ -193,7 +219,8 @@ _storeTemp:		# TODO: Sarebbe figo conrollare i range al posto di conrollare solo
 _writeLoop:	# Prints and converts the data form array to our file.
 	jmp _closeFile
 
-_overFlowDetected:		# TODO: we have to test this
+#------------Error managment--------------
+_overFlowDetected:		# FIXME: not working
 	leal overFlowDetectedmsg, %ecx
 	pushl overFlowDetectedmsg_len
 	pushl %ecx
@@ -201,7 +228,7 @@ _overFlowDetected:		# TODO: we have to test this
 	addl $8, %esp 
 	jmp _closeFile
 
-_NANerr:						# Stampa NAN stderr e termina la funzione
+_NANerr:
 	pushl NAN_len
 	leal NAN, %ecx
 	pushl %ecx
