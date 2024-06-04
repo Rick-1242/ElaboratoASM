@@ -23,7 +23,6 @@ overFlowDetectedmsg: .ascii "Overflow rilevato, si assicuri che i valori e la fo
 overFlowDetectedmsg_len: .long . - overFlowDetectedmsg
 NAN: .ascii "One of the values provided is Not A Number"
 NAN_len: .long . - NAN
-
 #---------Offset------------
 TOTAL_OBJECTS = 10
 OBJECT_SIZE = 4		# Numero di interi(elemnti) per oggeto(ordine) 
@@ -32,7 +31,6 @@ IDENTIFICATIVO_OFFSET = 0
 DURATA_OFFSET = 1
 SCANDEZA_OFFSET = 2
 PRIORITA_OFFSET = 3
-
 
 .section .bss
 	ordiniArr: #.fill 40, 1, 0	# create 40 1 byte entries wiht 0 that will be modified by funcions
@@ -47,8 +45,6 @@ PRIORITA_OFFSET = 3
 	writeFile: .long 0
 	#---------User I/O--------------
 	userInput: .ascii "" 
-
-
 
 .section .text
 	.global _start
