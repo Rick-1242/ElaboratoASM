@@ -3,6 +3,20 @@
     .globl _myPrint
     .globl _mySTDERR
     # .globl _openFile
+
+
+	# movl $0,%ebx
+	# movb ordiniArr + SCANDEZA_OFFSET(,%ebx, OBJECT_SIZE), %al
+	# call _itoa # for output
+	# call getArgs
+
+
+	# leal ordiniArr(%ecx), %ebx
+	# pushl %edx			# print(buffer)
+	# pushl %ebx
+	# call _myPrint
+	# addl $8, %esp	
+
     
 .type _myPrint, @function   # pushl msg_len     msg_len<int>
 	                        # pushl $msg        msg<char *>

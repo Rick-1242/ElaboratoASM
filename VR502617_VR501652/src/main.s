@@ -6,7 +6,7 @@ buffer: .ascii ""       # Spazio per il buffer di input
 newline: .byte 10       # Valore del simbolo di nuova linea
 sep: .byte 44			# Ovvero ","
 #---------Testo-------------
-menu: .ascii "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\n"
+menu: .ascii "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\n Input:"
 menu_len: .long . - menu
 msgHPF: .ascii "Pianificazione HPF:\n"
 msgEDF: .ascii "Pianificazione EDF:\n"
@@ -19,6 +19,8 @@ noArgsExitmsg: .ascii "Si assicuri di specificare un filename, come argomento, e
 noArgsExitmsg_len: .long . - noArgsExitmsg
 overFlowDetectedmsg: .ascii "Overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto\n"
 overFlowDetectedmsg_len: .long . - overFlowDetectedmsg
+NAN: .ascii "One of the values provided is Not A Number"
+NAN_len: .long . - NAN
 
 #---------Offset------------
 TOTAL_OBJECTS = 10
@@ -41,6 +43,8 @@ PRIORITA_OFFSET = 3
 		.endr
 	tempRis: .byte 0	# I valori in ordiniArr sono byte quindi anche questo.
 	writeFile: .long 0
+	#---------User I/O--------------
+	userInput: .ascii "" 
 
 
 
@@ -48,39 +52,54 @@ PRIORITA_OFFSET = 3
 	.global _start
 
 _start:
-	# movl $0,%ebx
-	# movb ordiniArr + SCANDEZA_OFFSET(,%ebx, OBJECT_SIZE), %al
-	# call _itoa # for output
-	# call getArgs
-	## Get arguments
+	# Get argument 1
 	popl %ebx # Non ci serve
 	popl %ebx # argc[0]
 	popl %ebx # argc[1]
 	testl %ebx, %ebx
 	je _noArgsExit
-						# push %edx
-						# push (ordiniArr) / the address
+
+	# TODO: here we have to check if there is a second paramter to wrtie to file if so then we need to remember it so that we can pass it to the algo call that will then write to file
+	# If we do this _openFile needs to be a funcion that takes writeFile as a parameter
+	# OLD stuff:
+		# Bonus print to file
+		# popl %edx
+		# testl %edx, %edx Not like this bro.
+		# je _noArgsExit
+		# inc writeFile
+		# jmp _open this time it opens as write
+		# The the printing to file ... and close
+	
+
+	# push %edx
+	# push (ordiniArr) / the address
 	jmp _openFile		# call _openFile would be cool and so openfile wopuld be in another file
 
-_menu:
-	leal ordiniArr(%ecx), %ebx
-	pushl %edx			# print(buffer)
-	pushl %ebx
+_mainMENU:
+	pushl menu_len
+	leal menu, %eax
+	pushl %eax
 	call _myPrint
 	addl $8, %esp
 
-	jmp _exit
-
-	# menu [1,2,3]
-	# Run algo call  
-	# Bonus print to file
-	# popl %edx
-	# testl %edx, %edx
-	# je _noArgsExit
-	# inc writeFile
-	# jmp _open this time it opens as write
-	# The the printing to file ... and close
+	# Read from stdin -> userInput
+	movl $3, %eax
+	movl $0, %ebx
+	movl $userInput, %ecx
+	movl $10, %edx
+	int $0x80
 	
+	movlb userInput, %al	# Only need the first byte
+	cmpb $51, %al			# userInput = "3" : exit
+	je _exit
+	cmpb $50, %al
+	je _HPF
+	cmpb $49, %al
+	je _EDF
+
+
+	jmp _mainMENU
+
 _exit:
 	movl $1, %eax
 	movl $0, %ebx
@@ -94,21 +113,12 @@ _noArgsExit:		# Exit task for when Args is not provided or is wrong
 	addl $8, %esp 
 	jmp _exit
 
-_overFlowDetected:
-	leal overFlowDetectedmsg, %ecx
-	pushl overFlowDetectedmsg_len
-	pushl %ecx
-	call _mySTDERR
-	addl $8, %esp 
-	jmp _exit
-
-
 #------------File processing------------------- This might become all a big funcion that returns in _closeFile
 _openFile:
 	xorl %ecx, %ecx
     movl $5, %eax       # syscall open
 						# Nome del file gia in ebx
-    movl writeFile, %ecx	# Modalità di apertura (O_RDONLY) FIXME:
+    movl writeFile, %ecx
     int $0x80
 
     # Se c'è un errore, esce
@@ -117,7 +127,7 @@ _openFile:
 
     movl %eax, fd
 
- 	xorl %ecx, %ecx 	# Clean ecx, used as counter in _readLoop TODO: this will be in the funcion
+ 	xorl %ecx, %ecx 	# Clean ecx, used as counter in _readLoop
 	# JMP to _readLoop or to _writeLoop based on writeFile
 	cmpl $1, writeFile
     jl _readLoop
@@ -127,7 +137,7 @@ _closeFile:
     movl $6, %eax        # syscall close
     movl fd, %ecx
     int $0x80
-	jmp menu
+	jmp _mainMENU
 
 _readLoop:		# Gets and converts the data from the file to our array.
 				# ebx buffer , ebx = 48
@@ -137,15 +147,13 @@ _readLoop:		# Gets and converts the data from the file to our array.
 	pushl %ecx
     movl $3, %eax        # syscall read
     movl fd, %ebx        # File descriptor
-    movl $buffer, %ecx
+    movl $buffer, %ecx   # TODO: this can be leal too fuck this this.
     movl $1, %edx        # Lenght
     int $0x80
 	popl %ecx
 
     cmpl $0, %eax        # ERROR or EOF check -> close and back to menu
     jle _closeFile
-
-	# TODO: we need a way to check if its a number 
 
 	pushl %edx			# print(buffer)
 	pushl $buffer
@@ -154,22 +162,28 @@ _readLoop:		# Gets and converts the data from the file to our array.
 
 	# Check if char is (separator or \n)
 	xorl %ebx, %ebx		# FIXME: might remove, may not be necesary
-	movb buffer, %bl
+	movb buffer, %bl	
     cmpb newline, %bl   # New line has to be treated like sep
     je _storeTemp	 
 	cmpb sep, %bl		
     je _storeTemp		# If sep,storeTemp and skip char
 
+	# NAN check
+	cmpb $57, %bl
+	ja _NANerr
+	cmpb $48, %bl
+	jb _NANerr
+
 	# ascii -> int
 	subb $48, %bl
   	movl $10, %edx
   	mulb %dl				# DL = DL * 10
-  	addb %bl, tempRis		# tempRis = tempRis + DL
+  	addb %bl, tempRis		# tempRis = tempRis + DL  FIXME: Somethign wrong with tempRis it doent work maybe we need to use registers
 	jc _overFlowDetected	# Se il valore in tempRis supera 255 va in overflow
 
     jmp _readLoop
 
-_storeTemp:
+_storeTemp:		# TODO: Sarebbe figo conrollare i range al posto di conrollare solo l'overflow
 	movb tempRis, %al
 	movb %al, ordiniArr(%ecx)		# Same as ordiniArr(,%ecx,1)
 	movb $0, tempRis				# Default value of tempRis is 0 so ";;" == ";0;" in the file
@@ -178,5 +192,26 @@ _storeTemp:
 
 _writeLoop:	# Prints and converts the data form array to our file.
 	jmp _closeFile
+
+_overFlowDetected:		# TODO: we have to test this
+	leal overFlowDetectedmsg, %ecx
+	pushl overFlowDetectedmsg_len
+	pushl %ecx
+	call _mySTDERR
+	addl $8, %esp 
+	jmp _closeFile
+
+_NANerr:						# Stampa NAN stderr e termina la funzione
+	pushl NAN_len
+	leal NAN, %ecx
+	pushl %ecx
+	call _mySTDERR
+	addl $8, %esp 
+	jmp _closeFile
+
+# _outofRangeDetected: 
+
+
+
 
 # TASK 1 rewrite all funcions to return eax as by GCC calling conventions.

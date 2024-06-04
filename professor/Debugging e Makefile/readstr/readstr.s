@@ -17,8 +17,8 @@ _start:
 	movl $50, %edx        # | <- string length
 	int $0x80             # Execute syscall
 
-	movl $4, %eax	        # Set system call WRITE
-	movl $1, %ebx	        # | <- standard output (video)
+	movl $4, %eax	      # Set system call WRITE
+	movl $1, %ebx	      # | <- standard output (video)
 	leal str, %ecx        # | <- destination
 	movl $50, %edx        # | <- length
 	int $0x80             # Execute syscall
