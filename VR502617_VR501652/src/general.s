@@ -1,7 +1,7 @@
-.section .data # TODO: Rember to cean up all the push and pop before turnin in the project
+.section .data
 .section .text
-    .globl _myPrint
-    .globl _mySTDERR
+    .globl myPrint
+    .globl mySTDERR
     # .globl _openFile
 
 
@@ -14,15 +14,15 @@
 	# leal ordiniArr(%ecx), %ebx
 	# pushl %edx			# print(buffer)
 	# pushl %ebx
-	# call _myPrint
+	# call myPrint
 	# addl $8, %esp	
 
     
-.type _myPrint, @function   # pushl msg_len     msg_len<int>
+.type myPrint, @function   # pushl msg_len     msg_len<int>
 	                        # pushl $msg        msg<char *>
-	                        # call _myPrint
+	                        # call myPrint
 	                        # addl $8, %esp     reset esp
-_myPrint:
+myPrint:
     push %ebp 
     movl %esp, %ebp 
 	push %ebx
@@ -45,11 +45,11 @@ _myPrint:
     pop %ebp 
     ret 
 
-.type _mySTDERR, @function   # pushl msg_len     msg_len<int>
+.type mySTDERR, @function   # pushl msg_len     msg_len<int>
 	                        # pushl $msg        msg<char *>
-	                        # call _myPrint
+	                        # call myPrint
 	                        # addl $8, %esp     reset esp
-_mySTDERR:
+mySTDERR:
     push %ebp 
     movl %esp, %ebp 
 	push %ebx

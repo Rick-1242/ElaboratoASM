@@ -3,14 +3,14 @@
 car: .byte 0			# la variabile car e' dichiarata di tipo byte
 
 .section .text
-	.global _itoa
+	.global itoa
 
-.type _itoa, @function		# dichiarazione della funzione _itoa che
+.type itoa, @function		# dichiarazione della funzione itoa che
 							# converte un intero in una stringa
 							# il numero da convertire deve essere
 							# stato caricato nel registro %eax
 
-_itoa: 
+itoa: 
 	# Prologo GCC calling conventions and then some(/I need my registers thx)
 	push %ebp
 	movl %esp, %ebp

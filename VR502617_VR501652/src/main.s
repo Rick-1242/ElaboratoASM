@@ -8,7 +8,7 @@ sep: .byte 44			# Ovvero ","
 asciiNine: .byte 57
 asciiZero: .byte 48
 #---------Testo-------------
-menu: .ascii "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
+menu: .ascii "\nScelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
 menu_len: .long . - menu
 msgHPF: .ascii "Pianificazione HPF:\n"
 msgEDF: .ascii "Pianificazione EDF:\n"
@@ -17,7 +17,7 @@ conclusione: .ascii "Conclusione:"
 conclusione_len: .long . - conclusione
 penalty: .ascii "Penalty:"
 penalty_len: .long . - penalty
-noArgsExitmsg: .ascii "Si assicuri di specificare un filename, come argomento, e che questo esista\n"
+noArgsExitmsg: .ascii "Si assicuri di specificare un filename, come argomento, e questo esista\n"
 noArgsExitmsg_len: .long . - noArgsExitmsg
 overFlowDetectedmsg: .ascii "Overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto\n"
 overFlowDetectedmsg_len: .long . - overFlowDetectedmsg
@@ -41,7 +41,6 @@ PRIORITA_OFFSET = 3
 			.byte 0  # SCANDEZA
 			.byte 0  # PRIORITA
 		.endr
-	tempRis: .byte 0	# I valori in ordiniArr sono byte quindi anche questo.
 	writeFile: .long 0
 	#---------User I/O--------------
 	userInput: .ascii "" 
@@ -71,17 +70,17 @@ _start:
 
 	# push %edx
 	# push (ordiniArr) / the address
-	jmp _openFile		# call _openFile would be cool and so openfile wopuld be in another file
+	jmp _openFile			# call _openFile would be cool and so openfile wopuld be in another file
 
 _mainMENU:
 	pushl menu_len
 	leal menu, %eax
 	pushl %eax
-	call _myPrint
+	call myPrint
 	addl $8, %esp
 
-	# Read from stdin -> userInput
-	movl $3, %eax
+
+	movl $3, %eax			# Read from stdin -> userInput
 	movl $0, %ebx
 	movl $userInput, %ecx
 	movl $10, %edx
@@ -103,11 +102,11 @@ _exit:
 	movl $0, %ebx
 	int $0x80
 
-_noArgsExit:		# Exit task for when Args is not provided or is wrong
+_noArgsExit:				# Exit task for when Args is not provided or is wrong
 	leal noArgsExitmsg, %ecx
 	pushl noArgsExitmsg_len
 	pushl %ecx
-	call _mySTDERR
+	call mySTDERR
 	addl $8, %esp 
 	jmp _exit
 
@@ -116,10 +115,11 @@ _HPF:
 	pushl msgEDFHPF_len
 	leal msgHPF, %eax
 	pushl %eax
-	call _myPrint
+	call myPrint
 	addl $8, %esp
 
-	# Pass Parms and call funcion
+	# Pass Parms
+	call HPF
 
 	jmp _mainMENU
 
@@ -127,114 +127,109 @@ _EDF:
 	pushl msgEDFHPF_len
 	leal msgEDF, %eax
 	pushl %eax
-	call _myPrint
+	call myPrint
 	addl $8, %esp
 
-	# Pass Parms and call funcion
+	# Pass Parms	
+	call EDF
 
 	jmp _mainMENU
 
 
-#------------File processing------------------- This might become all a big funcion that returns in _closeFile
+#------------File processing-------------------
 _openFile:
-	xorl %ecx, %ecx
-    movl $5, %eax       # syscall open
-						# Nome del file gia in ebx
-    movl writeFile, %ecx
+    movl $5, %eax       	# Syscall open
+							# Nome del file gia in ebx
+    movzbl writeFile, %ecx	# Move zero-extended byte to long
     int $0x80
 
-    # Se c'è un errore, esce
-    cmpl $0, %eax 
+    cmpl $0, %eax 			# Se c'è un errore in apertura da errore
     jl _noArgsExit
+	movl %eax, fd
 
-    movl %eax, fd
+ 	xorl %esi, %esi 		# Clean esi(used as counter in _readLoop) and ecx(used as tempRis)
+	movl $0, %ecx
 
- 	xorl %ecx, %ecx 	# Clean ecx, used as counter in _readLoop
-	# JMP to _readLoop or to _writeLoop based on writeFile
-	cmpl $1, writeFile
+	cmpl $1, writeFile		# JMP to _readLoop or to _writeLoop based on writeFile
     jl _readLoop
-    jmp _writeLoop   
+    jmp _writeLoop
 
 _closeFile:
-    movl $6, %eax        # syscall close
+    movl $6, %eax
     movl fd, %ecx
     int $0x80
-	jmp _mainMENU
+	jmp _mainMENU			# TODO: Quando sara una funzione dovre popare ebp e returnare.
 
 _readLoop:		# Gets and converts the data from the file to our array.
-				# ebx buffer , ebx = 48
-				# edx buffer_len, edx = 10
-				# ecx count
-				# eax 
+				# ebx buffer -> ebx = 48
+				# edx buffer_len ->  edx = 10
+				# esi count
+				# ecx tempRis
+				# eax ...
 	pushl %ecx
-    movl $3, %eax        # syscall read
-    movl fd, %ebx        # File descriptor
-    movl $buffer, %ecx   # TODO: this can be leal too fuck this this.
-    movl $1, %edx        # Lenght
+    movl $3, %eax        	# syscall read
+    movl fd, %ebx        	# File descriptor
+    movl $buffer, %ecx   	# TODO: this can be leal too fuck this this.
+    movl $1, %edx			# Lenght
     int $0x80
 	popl %ecx
 
-    cmpl $0, %eax        # ERROR or EOF check -> close and back to menu
+    cmpl $0, %eax       	# ERROR or EOF check -> close and back to menu
     jle _closeFile
 
-	pushl %edx			# print(buffer)
+	pushl %edx
 	pushl $buffer
-	call _myPrint
+	call myPrint			# print(buffer)
 	addl $8, %esp
 
-	# Check if char is (separator or \n)
-	xorl %ebx, %ebx		# FIXME: might remove, may not be necesary
-	movb buffer, %bl	
-    cmpb newline, %bl   # New line has to be treated like sep
+	# xorl %ebx, %ebx		# FIXME: might remove, may not be necesary
+	movb buffer, %bl
+
+
+    cmpb newline, %bl		# Check if buffer char is (separator or \n)
     je _storeTemp	 
 	cmpb sep, %bl		
-    je _storeTemp		# If sep,storeTemp and skip char
+    je _storeTemp			# If sep,storeTemp and skip char
 
-	# NAN check TODO: not working for some reason
-	cmpb asciiNine, %bl 	
+	cmpb asciiNine, %bl 	# NAN check FIXME: not working for some reason
 	ja _NANerr
 	cmpb asciiZero, %bl
 	jb _NANerr
 
-	# ascii -> int
-	subb $48, %bl
+	subb $48, %bl			# ascii -> int
   	movl $10, %edx
   	mulb %dl				# DL = DL * 10
-  	addb %bl, tempRis		# tempRis = tempRis + DL  FIXME: Somethign wrong with tempRis it doent work maybe we need to use registers
-	jc _overFlowDetected	# Se il valore in tempRis supera 255 va in overflow
+  	addb %bl, %cl			# tempRis = tempRis + DL
+	jc _overFlowDetected	# Se il valore in tempRis supera 255 va in overflow # FIXME: not working ^
 
     jmp _readLoop
 
-_storeTemp:		# TODO: Sarebbe figo conrollare i range al posto di conrollare solo l'overflow
-	movb tempRis, %al
-	movb %al, ordiniArr(%ecx)		# Same as ordiniArr(,%ecx,1)
-	movb $0, tempRis				# Default value of tempRis is 0 so ";;" == ";0;" in the file
-	inc %ecx
+_storeTemp:						# TODO: Sarebbe figo conrollare i range al posto di conrollare solo l'overflow
+	movb %cl, ordiniArr(%esi)	# Move tempRis to array position. Same as ordiniArr(,%ecx,1)
+	movb $0, %cl				# Default value of tempRis is 0 so ";;" == ";0;" in the file
+	inc %esi
 	jmp _readLoop
 
 _writeLoop:	# Prints and converts the data form array to our file.
 	jmp _closeFile
 
 #------------Error managment--------------
-_overFlowDetected:		# FIXME: not working
+_overFlowDetected:
 	leal overFlowDetectedmsg, %ecx
 	pushl overFlowDetectedmsg_len
 	pushl %ecx
-	call _mySTDERR
+	call mySTDERR
 	addl $8, %esp 
 	jmp _closeFile
 
 _NANerr:
-	pushl NAN_len
 	leal NAN, %ecx
+	pushl NAN_len	
 	pushl %ecx
-	call _mySTDERR
+	call mySTDERR
 	addl $8, %esp 
 	jmp _closeFile
 
 # _outofRangeDetected: 
-
-
-
 
 # TASK 1 rewrite all funcions to return eax as by GCC calling conventions.

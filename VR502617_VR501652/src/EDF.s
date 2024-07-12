@@ -1,9 +1,9 @@
 .section .data
 .section .text
-    .globl HPF
+    .globl EDF
 
-.type HPF, @function
-HPF:
+.type EDF, @function
+EDF:
     push %ebp 
     movl %esp, %ebp 
 
