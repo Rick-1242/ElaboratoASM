@@ -74,8 +74,8 @@ _start:
 	jmp _openFile			# call _openFile would be cool and so openfile wopuld be in another file
 
 _mainMENU:
-	pushl menu_len
 	leal menu, %eax
+	pushl menu_len
 	pushl %eax
 	call myPrint
 	addl $8, %esp
@@ -113,26 +113,34 @@ _noArgsExit:				# Exit task for when Args is not provided or is wrong
 
 #------------Algo calls-------------------
 _HPF:
-	pushl msgEDFHPF_len
 	leal msgHPF, %eax
+	pushl msgEDFHPF_len
 	pushl %eax
 	call myPrint
 	addl $8, %esp
 
-	# Pass Parms
+	pushl $TOTAL_OBJECTS
+	pushl writeFile
+	leal ordiniArr, %eax
+	pushl %eax
 	call HPF
+	addl $8, %esp
 
 	jmp _mainMENU
 
 _EDF:
-	pushl msgEDFHPF_len
 	leal msgEDF, %eax
+	pushl msgEDFHPF_len
 	pushl %eax
 	call myPrint
 	addl $8, %esp
 
-	# Pass Parms	
+	pushl $TOTAL_OBJECTS
+	pushl writeFile
+	leal ordiniArr, %eax
+	pushl %eax	
 	call EDF
+	addl $8, %esp
 
 	jmp _mainMENU
 
@@ -159,7 +167,7 @@ _closeFile:
     movl $6, %eax
     movl fd, %ecx
     int $0x80
-	jmp _mainMENU			# TODO: Quando sara una funzione dovre popare ebp e returnare.
+	jmp _mainMENU			# TODO: Quando sara una funzione deve popare ebp e returnare.
 
 _readLoop:		# Gets and converts the data from the file to our array.
 				# ebx buffer -> ebx = 48
@@ -183,24 +191,22 @@ _readLoop:		# Gets and converts the data from the file to our array.
 	call myPrint			# print(buffer)
 	addl $8, %esp
 
-	# xorl %ebx, %ebx		# FIXME: might remove, may not be necesary
-	movb buffer, %bl
-
+	movzbl buffer, %ebx
 
     cmpb newline, %bl		# Check if buffer char is (separator or \n)
     je _storeTemp	 
 	cmpb sep, %bl		
     je _storeTemp			# If sep,storeTemp and skip char
 
-	cmpb asciiNine, %bl 	# NAN check FIXME: not working for some reason
+	cmpb $'9', %bl 	# NAN check FIXME: not working for some reason
 	ja _NANerr
-	cmpb asciiZero, %bl
+	cmpb $'0', %bl
 	jb _NANerr
 
 	subb $48, %bl			# ascii -> int
   	movl $10, %edx
-  	mulb %dl				# DL = DL * 10
-  	addb %bl, %cl			# tempRis = tempRis + DL
+  	mulb %dl				# ebx = ebx * 10(edx)
+  	addb %bl, %cl			# cl = cl + bl
 	jc _overFlowDetected	# Se il valore in tempRis supera 255 va in overflow # FIXME: not working ^
 
     jmp _readLoop
