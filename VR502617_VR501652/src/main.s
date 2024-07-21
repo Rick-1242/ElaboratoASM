@@ -57,6 +57,7 @@ _start:
 	je _noArgsExit
 
 	# TODO: here we have to check if there is a second paramter to wrtie to file if so then we need to remember it so that we can pass it to the algo call that will then write to file
+	
 	# If we do this _openFile needs to be a funcion that takes writeFile as a parameter
 	# OLD stuff:
 		# Bonus print to file

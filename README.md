@@ -32,7 +32,11 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 
 <!-- ROADMAP -->
 ## Roadmap
-
+- main
+    -main menu
+    -call algoritmo HPF o EDF
+    -messaggio errore parametiri errati
+    
 - [ ] Feature 1
 - [ ] Feature 2
 - [ ] Feature 3
