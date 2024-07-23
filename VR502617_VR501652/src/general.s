@@ -2,6 +2,14 @@
 .section .text
     .globl myPrint
     .globl mySTDERR
+	.type myPrint, @function	# pushl $msg		# TODO: Should autocompute the lenght.
+								# call myPrint
+								# addl $4, %esp
+
+	.type mySTDERR, @function   # pushl msg_len		# TODO: Should autocompute the lenght.
+	                        	# pushl $msg
+	                        	# call myPrint
+	                        	# addl $8, %esp
     # .globl _openFile
 
 
@@ -17,18 +25,15 @@
 	# call myPrint
 	# addl $8, %esp	
 
-    
-.type myPrint, @function   # pushl msg_len     msg_len<int>
-	                        # pushl $msg        msg<char *>
-	                        # call myPrint
-	                        # addl $8, %esp     reset esp
+
 myPrint:
-    push %ebp 
+	push %ebp 
     movl %esp, %ebp 
 	push %ebx
 	push %eax
 	push %ecx
 	push %edx
+
 
     # Write syscall
     movl $4, %eax # syscall number for write()
@@ -37,7 +42,7 @@ myPrint:
     movl 12(%ebp), %edx # number of bytes to write
     int $0x80
 
-    pop %edx
+	pop %edx
 	pop %ecx
 	pop %eax
 	pop %ebx
@@ -45,10 +50,6 @@ myPrint:
     pop %ebp 
     ret 
 
-.type mySTDERR, @function   # pushl msg_len     msg_len<int>
-	                        # pushl $msg        msg<char *>
-	                        # call myPrint
-	                        # addl $8, %esp     reset esp
 mySTDERR:
     push %ebp 
     movl %esp, %ebp 

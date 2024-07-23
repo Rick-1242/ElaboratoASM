@@ -21,7 +21,7 @@ noArgsExitmsg: .ascii "Si assicuri di specificare un filename, come argomento, e
 noArgsExitmsg_len: .long . - noArgsExitmsg
 overFlowDetectedmsg: .ascii "Overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto\n"
 overFlowDetectedmsg_len: .long . - overFlowDetectedmsg
-NAN: .ascii "One of the values provided is Not A Number"
+NAN: .ascii "One of the values provided is Not A Number\n"
 NAN_len: .long . - NAN
 #---------Offset------------
 TOTAL_OBJECTS = 10
@@ -157,7 +157,7 @@ _openFile:
 	movl %eax, fd
 
  	xorl %esi, %esi 		# Clean esi(used as counter in _readLoop) and ecx(used as tempRis)
-	movl $0, %ecx
+	xorl %eax, %eax
 
 	cmpl $1, writeFile		# JMP to _readLoop or to _writeLoop based on writeFile
     jl _readLoop
@@ -170,7 +170,7 @@ _closeFile:
 	jmp _mainMENU			# TODO: Quando sara una funzione deve popare ebp e returnare.
 
 _readLoop:					# Gets and converts the data from the file to our array.
-	pushl %ecx
+	pushl %eax
 
     movl $3, %eax        	# syscall read
     movl fd, %ebx        	# File descriptor
@@ -181,35 +181,37 @@ _readLoop:					# Gets and converts the data from the file to our array.
     cmpl $0, %eax       	# ERROR or EOF check -> close and back to menu
     jle _closeFile
 
-	pushl %edx
-	pushl $buffer
-	call myPrint			# print(buffer)
-	addl $8, %esp
+	# pushl %edx
+	# pushl $buffer
+	# call myPrint			# print(buffer)
+	# addl $8, %esp
 
 	movzbl buffer, %ebx
-	popl %ecx
+	popl %eax
 
-    cmpb $10, %bl		# Check if buffer char is (separator or \n)
+    cmpb $10, %bl			# Check if buffer char is (separator or LF or CR)
+    je _storeTemp	 
+	cmpb $13, %bl
     je _storeTemp	 
 	cmpb $44, %bl		
-    je _storeTemp			# If sep,storeTemp and skip char
+    je _storeTemp			# If sep,  storeTemp and skip char
 
-	# cmpb $'9', %bl 	# NAN check FIXME: not working for some reason
-	# ja _NANerr
-	# cmpb $'0', %bl
-	# jb _NANerr
+	cmpb $48, %bl
+	jb _NANerr
+	cmpb $57, %bl
+	ja _NANerr
 
 	subb $48, %bl			# ascii -> int
   	movl $10, %edx
   	mulb %dl				# ebx = ebx * 10(edx)
-  	addl %ebx, %ecx			# cl = cl + bl
+  	addl %ebx, %eax			# cl = cl + bl
 	# jc _overFlowDetected	# Se il valore in tempRis supera 255 va in overflow # FIXME: not working ^
 
     jmp _readLoop
 
 _storeTemp:						# TODO: Sarebbe figo conrollare i range al posto di conrollare solo l'overflow
-	movb %cl, ordiniArr(%esi)	# Move tempRis to array position. Same as ordiniArr(,%ecx,1)
-	movb $0, %cl				# Default value of tempRis is 0 so ";;" == ";0;" in the file
+	movb %al, ordiniArr(%esi)	# Move tempRis to array position. Same as ordiniArr(,%ecx,1)
+	movb $0, %al				# Default value of tempRis is 0 so ";;" == ";0;" in the file
 	inc %esi
 	jmp _readLoop
 
@@ -223,7 +225,11 @@ _overFlowDetected:
 	pushl %ecx
 	call mySTDERR
 	addl $8, %esp 
-	jmp _closeFile
+	
+	movl $6, %eax
+    movl fd, %ecx
+    int $0x80
+	jmp _exit
 
 _NANerr:
 	leal NAN, %ecx
@@ -231,7 +237,11 @@ _NANerr:
 	pushl %ecx
 	call mySTDERR
 	addl $8, %esp 
-	jmp _closeFile
+
+	movl $6, %eax
+    movl fd, %ecx
+    int $0x80
+	jmp _exit
 
 # _outofRangeDetected: 
 
