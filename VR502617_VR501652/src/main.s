@@ -17,7 +17,7 @@ conclusione: .ascii "Conclusione:"
 conclusione_len: .long . - conclusione
 penalty: .ascii "Penalty:"
 penalty_len: .long . - penalty
-noArgsExitmsg: .ascii "Si assicuri di specificare un filename, come argomento, e questo esista\n"
+noArgsExitmsg: .ascii "specificare un filename come argomento e che questo esista\n"
 noArgsExitmsg_len: .long . - noArgsExitmsg
 overFlowDetectedmsg: .ascii "Overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto\n"
 overFlowDetectedmsg_len: .long . - overFlowDetectedmsg

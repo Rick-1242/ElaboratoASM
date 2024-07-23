@@ -60,7 +60,7 @@ mySTDERR:
 
     # Write syscall
     movl $4, %eax # syscall number for write()
-    movl $2, %ebx # file descriptor for stdout
+    movl $2, %ebx # file descriptor for stderr
     movl 8(%ebp), %ecx # Address of string to write
     movl 12(%ebp), %edx # number of bytes to write
     int $0x80

@@ -1,12 +1,6 @@
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
+<a id="readme-top"></a>
 
-
-<h3 align="center">ELABORATO ASM</h3>
+<h3 align="center"><a href="https://github.com/Rick-1242/ElaboratoASM">ELABORATO ASM</a></h3>
 
   <p align="center">
     software per la pianificazione delle attività di un sistema
@@ -33,11 +27,15 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 # main
 
-## _start
+### _start
 - controlla la validità degli argomenti se non ci sono salta all'etichetta _noArgsExit
 - salta all'etichetta _openFile
 
-## main menu
+### _openFile
+- con una sys call apre il file in modalita di lettura saltando a _readLoop
+- in caso di errori della syscall salta a _noArgsExit
+
+### _mainMenu
 - utilizza la funzione MyPrint per stampare in stout il menù
 - legge da stdin l'imput dell'utente
     - a seconda dell' imput dell'utente salta a
@@ -45,26 +43,49 @@ _For more examples, please refer to the [Documentation](https://example.com)_
         - _EDF
         - _exit
 
-## _HPF
+### _HPF
 - stampa con myPrint mshHPF
 - chiama la funzione HPF
 - salta a _mainMENU
 
-## _EDF
+### _EDF
 - stampa con myPrint mshEDF
 - chiama la funzione EDF
 - salta a _mainMENU
 
-## no args exit
-- chiama la funzione mySTDERR per stampare il messaggio noArgsExitmsg
+### _readLoop
+- legge 1 carattere dal file
+- se c'è un errore o il file è finito salta a  _closeFile
+- se il carattere non è un numero salta a _NANerr
+- se il carattere precedente era un numero lo moltiplica x 10 e lo somma al valore corrente se la somma supera 255 salta a _overFlowDetected
+- se il carattere è valido salta a _storeTemp
+
+### _storeTemp
+- aggiunge nell'array ordiniArr nella posizione esi
+
+### _overFlowDetected
+- stampa in stderr con la funzione MySTDERR overFlowDetectedmsg
+- salta a _closeFile
+
+### _noArgsExit
+- chiama la funzione mySTDERR per stampare il messaggio noArgsExitmsg:"specificare un filename come argomento e che questo esista"
 - salta a _exit
 
-## exit
-- fa una sys call per dare l'errore
+### _NANerr
+-  chiama mySTDERR per stampare il messaggio MAN: "One of the values provided is Not A Number"
+
+### exit
+- fa una sys call per uscire
+
+# generals
+
+### myPrint
+- esegue una sys call di scrittura su stdout leggendo il messaggio dallo stack
+
+### mySTDERR
+- esegue una sys call di scrittura su stdout leggendo il messaggio dallo stack
 
 
-
-See the [open issues](https://github.com/Rick-1242/ElaboratoASM/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
