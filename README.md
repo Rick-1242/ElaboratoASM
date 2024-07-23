@@ -31,16 +31,38 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 
 
 <!-- ROADMAP -->
-## Roadmap
-- main
-    -main menu
-    -call algoritmo HPF o EDF
-    -messaggio errore parametiri errati
-    
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
+# main
+
+## _start
+- controlla la validità degli argomenti se non ci sono salta all'etichetta _noArgsExit
+- salta all'etichetta _openFile
+
+## main menu
+- utilizza la funzione MyPrint per stampare in stout il menù
+- legge da stdin l'imput dell'utente
+    - a seconda dell' imput dell'utente salta a
+        - _HPF
+        - _EDF
+        - _exit
+
+## _HPF
+- stampa con myPrint mshHPF
+- chiama la funzione HPF
+- salta a _mainMENU
+
+## _EDF
+- stampa con myPrint mshEDF
+- chiama la funzione EDF
+- salta a _mainMENU
+
+## no args exit
+- chiama la funzione mySTDERR per stampare il messaggio noArgsExitmsg
+- salta a _exit
+
+## exit
+- fa una sys call per dare l'errore
+
+
 
 See the [open issues](https://github.com/Rick-1242/ElaboratoASM/issues) for a full list of proposed features (and known issues).
 
