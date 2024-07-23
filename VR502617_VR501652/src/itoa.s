@@ -128,7 +128,7 @@ _fine__itoa:
 	# GCC calling convetions
 	pop %ecx
 	pop %eax
-	pop %edx
+	pop %ebx
 	# pop %edi
 	# pop %esi
   	movl %ebp, %esp 
