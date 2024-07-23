@@ -3,8 +3,8 @@
 #---------File I/O--------------
 fd: .long 0
 buffer: .ascii ""       # Spazio per il buffer di input
-newline: .byte 10       # Valore del simbolo di nuova linea
-sep: .byte 44			# Ovvero ","
+# newline: .byte 10       # Valore del simbolo di nuova linea
+# sep: .byte 44			# Ovvero ","
 asciiNine: .byte 57
 asciiZero: .byte 48
 #---------Testo-------------
@@ -169,19 +169,14 @@ _closeFile:
     int $0x80
 	jmp _mainMENU			# TODO: Quando sara una funzione deve popare ebp e returnare.
 
-_readLoop:		# Gets and converts the data from the file to our array.
-				# ebx buffer -> ebx = 48
-				# edx buffer_len ->  edx = 10
-				# esi count
-				# ecx tempRis
-				# eax ...
+_readLoop:					# Gets and converts the data from the file to our array.
 	pushl %ecx
+
     movl $3, %eax        	# syscall read
     movl fd, %ebx        	# File descriptor
     movl $buffer, %ecx   	# TODO: this can be leal too fuck this this.
     movl $1, %edx			# Lenght
     int $0x80
-	popl %ecx
 
     cmpl $0, %eax       	# ERROR or EOF check -> close and back to menu
     jle _closeFile
@@ -192,22 +187,23 @@ _readLoop:		# Gets and converts the data from the file to our array.
 	addl $8, %esp
 
 	movzbl buffer, %ebx
+	popl %ecx
 
-    cmpb newline, %bl		# Check if buffer char is (separator or \n)
+    cmpb $10, %bl		# Check if buffer char is (separator or \n)
     je _storeTemp	 
-	cmpb sep, %bl		
+	cmpb $44, %bl		
     je _storeTemp			# If sep,storeTemp and skip char
 
-	cmpb $'9', %bl 	# NAN check FIXME: not working for some reason
-	ja _NANerr
-	cmpb $'0', %bl
-	jb _NANerr
+	# cmpb $'9', %bl 	# NAN check FIXME: not working for some reason
+	# ja _NANerr
+	# cmpb $'0', %bl
+	# jb _NANerr
 
 	subb $48, %bl			# ascii -> int
   	movl $10, %edx
   	mulb %dl				# ebx = ebx * 10(edx)
-  	addb %bl, %cl			# cl = cl + bl
-	jc _overFlowDetected	# Se il valore in tempRis supera 255 va in overflow # FIXME: not working ^
+  	addl %ebx, %ecx			# cl = cl + bl
+	# jc _overFlowDetected	# Se il valore in tempRis supera 255 va in overflow # FIXME: not working ^
 
     jmp _readLoop
 
