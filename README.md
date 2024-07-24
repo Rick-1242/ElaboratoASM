@@ -9,8 +9,14 @@ produttivo
 </div>
 
 ## About The Project
+realizzare un programma assembly che riorganizzi i prodotti nel file di input in modo da non sostenere penalità a causa di ritardi.
 
-Software per la pianificazione di un sistema produttivo 
+l'utente può utilizzare 2 algoritmi;
+
+- EDF(Earliest Deadline First): riordina i prodotti in modo che quelli con la scadenza più vicina vengano prodotti per primi
+- HPF(Highest Priority First): riordina i prodotti in modo che quelli con la priorità piu alta vengano prodotti per primi
+ 
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -99,6 +105,8 @@ Contiene l'algoritmo per la lettura del file e scrittura sull'array e quello per
 ### mySTDERR
 
 - esegue una sys call di scrittura su stdout leggendo il messaggio dallo stack
+
+---
 
 ![alt text](flowchart.png "Flowchart")
 
