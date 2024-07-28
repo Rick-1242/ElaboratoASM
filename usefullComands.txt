@@ -1,0 +1,8 @@
+GDB:
+x/40db &ordiniArr
+ 
+watch $ecx
+
+info reg
+
+ASM:
