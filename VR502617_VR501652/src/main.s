@@ -6,21 +6,14 @@ userInput: .ascii ""
 asciiNine: .byte 57
 asciiZero: .byte 48
 #---------Testo-------------
-menu: .ascii "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
-menu_len: .long . - menu
-msgHPF: .ascii "Pianificazione HPF:\n"
-msgEDF: .ascii "Pianificazione EDF:\n"
-msgEDFHPF_len: .long . - msgEDF
-conclusione: .ascii "Conclusione:"
-conclusione_len: .long . - conclusione
-penalty: .ascii "Penalty:"
-penalty_len: .long . - penalty
-noArgsExitmsg: .ascii "specificare un filename come argomento e che questo esista\n"
-noArgsExitmsg_len: .long . - noArgsExitmsg
-overFlowDetectedmsg: .ascii "Overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto\n"
-overFlowDetectedmsg_len: .long . - overFlowDetectedmsg
-NAN: .ascii "One of the values provided is Not A Number\n"
-NAN_len: .long . - NAN
+menu: .asciz "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
+msgHPF: .asciz "Pianificazione HPF:\n"
+msgEDF: .asciz "Pianificazione EDF:\n"
+conclusione: .asciz "Conclusione:"
+penalty: .asciz "Penalty:"
+noArgsExitmsg: .asciz "specificare un filename come argomento e che questo esista\n"
+overFlowDetectedmsg: .asciz "Overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto\n"
+NAN: .asciz "One of the values provided is Not A Number\n"
 #---------Offset------------
 TOTAL_OBJECTS = 10
 OBJECT_SIZE = 4		# Numero di interi(elemnti) per oggeto(ordine) 
@@ -64,10 +57,9 @@ _start:
 
 _mainMENU:
 	leal menu, %eax
-	pushl menu_len
 	pushl %eax
-	call myPrint
-	addl $8, %esp
+	call printSTR
+	addl $4, %esp
 
 
 	movl $3, %eax			# Read from stdin -> userInput
@@ -95,19 +87,17 @@ _exit:
 
 _noArgsExit:				# Exit task for when Args is not provided or is wrong
 	leal noArgsExitmsg, %ecx
-	pushl noArgsExitmsg_len
 	pushl %ecx
-	call mySTDERR
-	addl $8, %esp 
+	call printERR
+	addl $4, %esp 
 	jmp _exit
 
 #------------Algo calls-------------------
 _HPF:
 	leal msgHPF, %eax
-	pushl msgEDFHPF_len
 	pushl %eax
-	call myPrint
-	addl $8, %esp
+	call printSTR
+	addl $4, %esp
 
 	pushl $TOTAL_OBJECTS
 	pushl writeFile
@@ -120,10 +110,9 @@ _HPF:
 
 _EDF:
 	leal msgEDF, %eax
-	pushl msgEDFHPF_len
 	pushl %eax
-	call myPrint
-	addl $8, %esp
+	call printSTR
+	addl $4, %esp
 
 	pushl $TOTAL_OBJECTS
 	pushl writeFile
@@ -190,7 +179,6 @@ _readLoop:					# Gets and converts the data from the file to our array.
 	subb $48, %bl			# ascii -> int
   	movl $10, %edx
   	mulb %dl
-	jc _overFlowDetected	# If the result is over 255 it detecrs the overflow 
   	addb %bl, %al			
 	jc _overFlowDetected	# If the result is over 255 it detecrs the overflow 
 
@@ -208,10 +196,9 @@ _writeLoop:					# Prints and converts the data form array to our file.
 #------------Error managment--------------
 _overFlowDetected:
 	leal overFlowDetectedmsg, %ecx
-	pushl overFlowDetectedmsg_len
 	pushl %ecx
-	call mySTDERR
-	addl $8, %esp 
+	call printERR
+	addl $4, %esp 
 	
 	movl $6, %eax
     movl fd, %ecx
@@ -220,10 +207,9 @@ _overFlowDetected:
 
 _NANerr:
 	leal NAN, %ecx
-	pushl NAN_len	
 	pushl %ecx
-	call mySTDERR
-	addl $8, %esp 
+	call printERR
+	addl $4, %esp 
 
 	movl $6, %eax
     movl fd, %ecx
