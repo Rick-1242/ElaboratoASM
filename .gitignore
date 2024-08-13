@@ -1,3 +1,8 @@
+# BIN
+VR502617_VR501652/bin/*
+
+!VR502617_VR501652/bin/.gitkeep 
+
 # Prerequisites
 *.d
 
