@@ -1,14 +1,12 @@
 .section .data
-# .align 4	# do i need this?
 #---------File I/O--------------
 fd: .long 0
 buffer: .ascii ""       # Spazio per il buffer di input
-# newline: .byte 10       # Valore del simbolo di nuova linea
-# sep: .byte 44			# Ovvero ","
+userInput: .ascii "" 
 asciiNine: .byte 57
 asciiZero: .byte 48
 #---------Testo-------------
-menu: .ascii "\nScelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
+menu: .ascii "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
 menu_len: .long . - menu
 msgHPF: .ascii "Pianificazione HPF:\n"
 msgEDF: .ascii "Pianificazione EDF:\n"
@@ -33,17 +31,8 @@ SCANDEZA_OFFSET = 2
 PRIORITA_OFFSET = 3
 
 .section .bss
-	ordiniArr: #.fill 40, 1, 0	# create 40 1 byte entries wiht 0 that will be modified by funcions
-		# 1 object is 4 Bytes = .long = 32bits.
-		.rept TOTAL_OBJECTS
-			.byte 0  # IDENTIFICATIVO
-			.byte 0  # DURATA
-			.byte 0  # SCANDEZA
-			.byte 0  # PRIORITA
-		.endr
+	ordiniArr: .fill 40, 1, 0	# create 40 1 byte entries wiht 0 that will be modified by funcions
 	writeFile: .long 0
-	#---------User I/O--------------
-	userInput: .ascii "" 
 
 .section .text
 	.global _start
@@ -71,7 +60,7 @@ _start:
 
 	# push %edx
 	# push (ordiniArr) / the address
-	jmp _openFile			# call _openFile would be cool and so openfile wopuld be in another file
+	jmp _openFile			# TODO: call _openFile would be cool and so openfile wopuld be in another file
 
 _mainMENU:
 	leal menu, %eax
@@ -87,8 +76,9 @@ _mainMENU:
 	movl $10, %edx
 	int $0x80
 	
+	# Handle userInput and select task accordingly
 	movb userInput, %al		# Only need the first byte
-	cmpb $51, %al			# userInput = "3" : exit
+	cmpb $51, %al			# userInput = "3" ? exit
 	je _exit
 	cmpb $50, %al
 	je _HPF
@@ -124,7 +114,7 @@ _HPF:
 	leal ordiniArr, %eax
 	pushl %eax
 	call HPF
-	addl $8, %esp
+	addl $12, %esp
 
 	jmp _mainMENU
 
@@ -140,7 +130,7 @@ _EDF:
 	leal ordiniArr, %eax
 	pushl %eax	
 	call EDF
-	addl $8, %esp
+	addl $12, %esp
 
 	jmp _mainMENU
 
@@ -174,27 +164,23 @@ _readLoop:					# Gets and converts the data from the file to our array.
 
     movl $3, %eax        	# syscall read
     movl fd, %ebx        	# File descriptor
-    movl $buffer, %ecx   	# TODO: this can be leal too fuck this this.
+    movl $buffer, %ecx   	# same as leal buffer, %ecx
     movl $1, %edx			# Lenght
     int $0x80
 
     cmpl $0, %eax       	# ERROR or EOF check -> close and back to menu
     jle _closeFile
-
-	# pushl %edx
-	# pushl $buffer
-	# call myPrint			# print(buffer)
-	# addl $8, %esp
+	# je checkVals  TODO: if everyting good then rember to close the file.
 
 	movzbl buffer, %ebx
 	popl %eax
 
     cmpb $10, %bl			# Check if buffer char is (separator or LF or CR)
     je _storeTemp	 
-	cmpb $13, %bl
-    je _storeTemp	 
 	cmpb $44, %bl		
     je _storeTemp			# If sep,  storeTemp and skip char
+	cmpb $13, %bl
+    je _readLoop	 
 
 	cmpb $48, %bl
 	jb _NANerr
@@ -203,19 +189,20 @@ _readLoop:					# Gets and converts the data from the file to our array.
 
 	subb $48, %bl			# ascii -> int
   	movl $10, %edx
-  	mulb %dl				# ebx = ebx * 10(edx)
-  	addl %ebx, %eax			# cl = cl + bl
-	# jc _overFlowDetected	# Se il valore in tempRis supera 255 va in overflow # FIXME: not working ^
+  	mulb %dl
+	jc _overFlowDetected	# If the result is over 255 it detecrs the overflow 
+  	addb %bl, %al			
+	jc _overFlowDetected	# If the result is over 255 it detecrs the overflow 
 
     jmp _readLoop
 
-_storeTemp:						# TODO: Sarebbe figo conrollare i range al posto di conrollare solo l'overflow
-	movb %al, ordiniArr(%esi)	# Move tempRis to array position. Same as ordiniArr(,%ecx,1)
-	movb $0, %al				# Default value of tempRis is 0 so ";;" == ";0;" in the file
+_storeTemp:
+	movb %al, ordiniArr(%esi)	# Move int to array position. Same as ordiniArr(,%ecx,1)
+	movb $0, %al				# Default value of int is 0 so ";;" == ";0;" in the file
 	inc %esi
 	jmp _readLoop
 
-_writeLoop:	# Prints and converts the data form array to our file.
+_writeLoop:					# Prints and converts the data form array to our file.
 	jmp _closeFile
 
 #------------Error managment--------------
@@ -243,6 +230,52 @@ _NANerr:
     int $0x80
 	jmp _exit
 
-# _outofRangeDetected: 
+# checkVals:
+#   # Salva %ebp per poterlo cambiare liberamente
+#   pushl %ebp
+#   movl %esp, %ebp
 
-# TASK 1 rewrite all funcions to return eax as by GCC calling conventions.
+#   movl values, %ecx
+# checkLoop:
+#   movl (%ebp, %ecx, 4), %eax # ID (1 <= ID <= 127)
+#   decl %ecx
+
+#   cmpl $1, %eax
+#   jl endCheck
+
+#   cmpl $127, %eax
+#   jg endCheck
+
+#   movl (%ebp, %ecx, 4), %eax # Durata (1 <= D <= 10)
+#   decl %ecx
+
+#   cmpl $1, %eax
+#   jl endCheck
+
+#   cmpl $10, %eax
+#   jg endCheck
+
+#   movl (%ebp, %ecx, 4), %eax # Scadenza (1 <= S <= 100)
+#   decl %ecx
+
+#   cmpl $1, %eax
+#   jl endCheck
+
+#   cmpl $100, %eax
+#   jg endCheck
+
+#   movl (%ebp, %ecx, 4), %eax # Priorità (1 <= P <= 5)
+
+#   cmpl $1, %eax
+#   jl endCheck
+
+#   cmpl $5, %eax
+#   jg endCheck
+
+#   loop checkLoop
+#   popl %ebp
+#   jmp planAlgorithm
+
+# endCheck:
+#   popl %ebp
+#   jmp errorInput
