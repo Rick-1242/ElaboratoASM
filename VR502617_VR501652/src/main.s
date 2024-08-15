@@ -1,27 +1,23 @@
 .section .data
-#---------File I/O--------------
-fd: .long 0
-buffer: .ascii ""       # Spazio per il buffer di input
-userInput: .ascii "" 
-asciiNine: .byte 57
-asciiZero: .byte 48
-#---------Testo-------------
-menu: .asciz "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
-msgHPF: .asciz "Pianificazione HPF:\n"
-msgEDF: .asciz "Pianificazione EDF:\n"
-conclusione: .asciz "Conclusione:"
-penalty: .asciz "Penalty:"
-noArgsExitmsg: .asciz "specificare un filename come argomento e che questo esista\n"
-overFlowDetectedmsg: .asciz "Overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto\n"
-NAN: .asciz "One of the values provided is Not A Number\n"
-#---------Offset------------
-TOTAL_OBJECTS = 10
-OBJECT_SIZE = 4		# Numero di interi(elemnti) per oggeto(ordine) 
-					# 4 elementi x 1 byte = 4 byte a oggetto
-IDENTIFICATIVO_OFFSET = 0
-DURATA_OFFSET = 1
-SCANDEZA_OFFSET = 2
-PRIORITA_OFFSET = 3
+	#---------File I/O--------------
+	fd: .long 0
+	buffer: .asciz ""       # Spazio per il buffer di input
+	userInput: .asciz "" 
+	#---------Testo-------------
+	menu: .asciz "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
+	msgHPF: .asciz "Pianificazione HPF:\n"
+	msgEDF: .asciz "Pianificazione EDF:\n"
+	noArgsExitmsg: .asciz "ERRORE: specificare un filename come argomento e si assicuri che questo esista\n"
+	overFlowDetectedmsg: .asciz "ERRORE: overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto\n"
+	NAN: .asciz "ERROE: uno dei valori al interno del file non é un numero\n"
+	#---------Offset------------
+	TOTAL_OBJECTS = 10
+	OBJECT_SIZE = 4			# Numero di interi(elemnti) per oggeto(ordine) 
+							# 4 elementi x 1 byte = 4 byte a oggetto
+	IDENTIFICATIVO_OFFSET = 0
+	DURATA_OFFSET = 1
+	SCANDEZA_OFFSET = 2
+	PRIORITA_OFFSET = 3
 
 .section .bss
 	ordiniArr: .fill 40, 1, 0	# create 40 1 byte entries wiht 0 that will be modified by funcions
