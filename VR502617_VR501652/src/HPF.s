@@ -16,12 +16,13 @@ HPF:
     movl %esp, %ebp 
     # 16(%ebp) == TOTAL_OBJECTS
     # 12(%ebp) == writeFile
+    # 8(%ebp) ==  &ordiniArr
 
     movl 16(%ebp), %ebx
     movl 8(%ebp), %esi      # esi points to the address of the first element in the array
     xorl %ecx, %ecx
 
- _printVals:        # TODO: test print everything
+ _printVals:        # test print everything
     cmpl $0, %ebx
     je _HPFret
 
