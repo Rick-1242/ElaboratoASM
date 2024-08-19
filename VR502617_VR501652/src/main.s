@@ -7,9 +7,11 @@
 	menu: .asciz "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
 	msgHPF: .asciz "Pianificazione HPF:\n"
 	msgEDF: .asciz "Pianificazione EDF:\n"
-	noArgsExitmsg: .asciz "ERRORE: specificare un filename come argomento e si assicuri che questo esista\n"
-	overFlowDetectedmsg: .asciz "ERRORE: overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto\n"
-	NAN: .asciz "ERROE: uno dei valori al interno del file non é un numero\n"
+	noArgsExitmsg: .asciz "ERRORE: specificare un filename come argomento e si assicuri che questo esista.\n"
+	overFlowmsg: .asciz "ERRORE: overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto.\n"
+	NAN: .asciz "ERROE: uno dei valori al interno del file non é un numero.\n"
+	outOfRange1: .asciz "ERROE: il valore '"
+	outOfRange2: .asciz "' non rientra nelle specifice del progetto.\n"
 	#---------Offset------------
 	TOTAL_OBJECTS = 10
 	OBJECT_SIZE = 4			# Numero di interi(elemnti) per oggeto(ordine) 
@@ -154,8 +156,8 @@ _readLoop:					# Gets and converts the data from the file to our array.
     int $0x80
 
     cmpl $0, %eax       	# ERROR or EOF check -> close and back to menu
-    jle _closeFile
-	# je checkVals  TODO: if everyting good then rember to close the file.
+	je _checkVals  			# TODO: if everyting good then rember to close the file.
+    jl _closeFile
 
 	movzbl buffer, %ebx
 	popl %eax
@@ -168,15 +170,15 @@ _readLoop:					# Gets and converts the data from the file to our array.
     je _readLoop	 
 
 	cmpb $48, %bl
-	jb _NANerr
+	jb _NAN
 	cmpb $57, %bl
-	ja _NANerr
+	ja _NAN
 
 	subb $48, %bl			# ascii -> int
   	movl $10, %edx
   	mulb %dl
   	addb %bl, %al			
-	jc _overFlowDetected	# If the result is over 255 it detecrs the overflow 
+	jc _overFlow	# If the result is over 255 it detecrs the overflow 
 
     jmp _readLoop
 
@@ -190,74 +192,75 @@ _writeLoop:					# Prints and converts the data form array to our file.
 	jmp _closeFile
 
 #------------Error managment--------------
-_overFlowDetected:
-	leal overFlowDetectedmsg, %ecx
-	pushl %ecx
-	call printERR
-	addl $4, %esp 
-	
+_closeFileExit:
 	movl $6, %eax
     movl fd, %ecx
     int $0x80
 	jmp _exit
 
-_NANerr:
+_overFlow:
+	leal overFlowmsg, %ecx
+	pushl %ecx
+	call printERR
+	addl $4, %esp 
+	jmp _closeFileExit
+
+_NAN:
 	leal NAN, %ecx
 	pushl %ecx
 	call printERR
 	addl $4, %esp 
+	jmp _closeFileExit
 
-	movl $6, %eax
-    movl fd, %ecx
-    int $0x80
-	jmp _exit
+_checkVals:
+	dec	%esi
+	movl %esi, %ecx	# Decremeting count
+	xorl %eax, %eax
 
-# checkVals:
-#   # Salva %ebp per poterlo cambiare liberamente
-#   pushl %ebp
-#   movl %esp, %ebp
+_checkValsLoop:
+	movb ordiniArr(%ecx), %al # 1 <= P <= 5
+	cmpb $1, %al
+	jl _outOfRange
+	cmpb $5, %al
+	jg _outOfRange
 
-#   movl values, %ecx
-# checkLoop:
-#   movl (%ebp, %ecx, 4), %eax # ID (1 <= ID <= 127)
-#   decl %ecx
+	dec %ecx
+	movb ordiniArr(%ecx), %al # 1 <= S <= 100
+	cmpb $1, %al
+	jl _outOfRange
+	cmpb $100, %al
+	jg _outOfRange
 
-#   cmpl $1, %eax
-#   jl endCheck
+	dec %ecx
+	movb ordiniArr(%ecx), %al # 1 <= D <= 10
+	cmpb $1, %al
+	jl _outOfRange
+	cmpb $10, %al
+	jg _outOfRange
 
-#   cmpl $127, %eax
-#   jg endCheck
+	dec %ecx
+	movb ordiniArr(%ecx), %al # ID (1 <= ID <= 127)
+	cmpb $1, %al
+	jl _outOfRange
+	cmpb $127, %al
+	jg _outOfRange
 
-#   movl (%ebp, %ecx, 4), %eax # Durata (1 <= D <= 10)
-#   decl %ecx
+	dec %ecx
+	cmpl $0, %ecx			# if ecx > 0: _checkValsLoop
+	jg	_checkValsLoop
+	jmp _closeFile			# else _closeFile
 
-#   cmpl $1, %eax
-#   jl endCheck
+_outOfRange:
+	leal outOfRange1, %ecx
+	pushl %ecx
+	call printERR
+	addl $4, %esp 
 
-#   cmpl $10, %eax
-#   jg endCheck
+	call printINT
 
-#   movl (%ebp, %ecx, 4), %eax # Scadenza (1 <= S <= 100)
-#   decl %ecx
+	leal outOfRange2, %ecx
+	pushl %ecx
+	call printERR
+	addl $4, %esp 
 
-#   cmpl $1, %eax
-#   jl endCheck
-
-#   cmpl $100, %eax
-#   jg endCheck
-
-#   movl (%ebp, %ecx, 4), %eax # Priorità (1 <= P <= 5)
-
-#   cmpl $1, %eax
-#   jl endCheck
-
-#   cmpl $5, %eax
-#   jg endCheck
-
-#   loop checkLoop
-#   popl %ebp
-#   jmp planAlgorithm
-
-# endCheck:
-#   popl %ebp
-#   jmp errorInput
+	jmp _closeFileExit
