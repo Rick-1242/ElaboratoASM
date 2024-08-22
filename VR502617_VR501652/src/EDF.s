@@ -8,7 +8,7 @@ EDF:
     push %ebp 
     movl %esp, %ebp 
 
-    pushl $0                 # Index = Scadenza
+    pushl $2                 # Scadenza
     pushl 16(%ebp)           # Total Objects
     pushl 8(%ebp)            # ordiniArr
     call bubbleSort

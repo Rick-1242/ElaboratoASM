@@ -1,5 +1,5 @@
 .section .data
-    HPFmsg: .asciz "\nArray: "
+    HPFmsg: .asciz "; "
     OBJECT_SIZE = 4	
     IDENTIFICATIVO_OFFSET = 0
     DURATA_OFFSET = 1
@@ -25,14 +25,17 @@ HPF:
     cmpl $0, %ebx
     je _HPFret
 
+    
+
+    xorl %eax, %eax
+    movb IDENTIFICATIVO_OFFSET(%esi,%ecx,OBJECT_SIZE), %al  # loads the value at address esi + offset(ebx) into al. In C: A = *(ptr_arr + ptr_offset)
+    call printINT
+
     leal HPFmsg, %eax
 	pushl %eax
 	call printSTR
 	addl $4, %esp
 
-    xorl %eax, %eax
-    movb IDENTIFICATIVO_OFFSET(%esi,%ecx,OBJECT_SIZE), %al  # loads the value at address esi + offset(ebx) into al. In C: A = *(ptr_arr + ptr_offset)
-    call printINT
 
     inc %ecx
     dec %ebx

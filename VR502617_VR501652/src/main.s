@@ -1,19 +1,19 @@
 .section .data
 	#---------File I/O--------------
 	fd: .long 0
-	buffer: .asciz ""       # Spazio per il buffer di input
+	buffer: .asciz ""       # Spazio per il buffer di input  TODO: check wat teacher said about this.
 	userInput: .asciz "" 
 	#---------Testo-------------
 	menu: .asciz "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
-	msgHPF: .asciz "Pianificazione HPF:\n"
-	msgEDF: .asciz "Pianificazione EDF:\n"
+	msgHPF: .asciz "Pianificazione HPF:"
+	msgEDF: .asciz "Pianificazione EDF:"
 	noArgsExitmsg: .asciz "ERRORE: specificare un filename come argomento e si assicuri che questo esista.\n"
 	overFlowmsg: .asciz "ERRORE: overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto.\n"
 	NAN: .asciz "ERROE: uno dei valori al interno del file non é un numero.\n"
 	outOfRange1: .asciz "ERROE: il valore '"
 	outOfRange2: .asciz "' non rientra nelle specifice del progetto.\n"
 	#---------Offset------------
-	TOTAL_OBJECTS = 10
+	MAX_TOTAL_OBJECTS = 10
 	OBJECT_SIZE = 4			# Numero di interi(elemnti) per oggeto(ordine) 
 							# 4 elementi x 1 byte = 4 byte a oggetto
 	IDENTIFICATIVO_OFFSET = 0
@@ -22,7 +22,8 @@
 	PRIORITA_OFFSET = 3
 
 .section .bss
-	ordiniArr: .fill 40, 1, 0	# create 40 1 byte entries wiht 0 that will be modified by funcions
+	totalObjects: .long 0
+	ordiniArr: .fill MAX_TOTAL_OBJECTS, 4, 0	# create 40 1 byte entries wiht 0 that will be modified by funcions
 	writeFile: .long 0
 
 .section .text
@@ -97,7 +98,7 @@ _HPF:
 	call printSTR
 	addl $4, %esp
 
-	pushl $TOTAL_OBJECTS
+	pushl totalObjects
 	pushl writeFile
 	leal ordiniArr, %eax
 	pushl %eax
@@ -112,7 +113,7 @@ _EDF:
 	call printSTR
 	addl $4, %esp
 
-	pushl $TOTAL_OBJECTS
+	pushl totalObjects
 	pushl writeFile
 	leal ordiniArr, %eax
 	pushl %eax	
@@ -212,9 +213,14 @@ _NAN:
 	addl $4, %esp 
 	jmp _closeFileExit
 
-_checkVals:
+_checkVals:	# Order of operaations not in locial order for better pipeline integration
+	movl %esi, %eax
+
 	dec	%esi
-	movl %esi, %ecx	# Decremeting count
+	sar $2, %eax
+
+	movl %esi, %ecx			# Decremeting count
+	movl %eax, totalObjects	# For sorting algo
 	xorl %eax, %eax
 
 _checkValsLoop:
