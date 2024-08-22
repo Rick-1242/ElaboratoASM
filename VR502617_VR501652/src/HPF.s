@@ -21,11 +21,10 @@ HPF:
     movl 8(%ebp), %esi      # esi points to the address of the first element in the array
     xorl %ecx, %ecx
 
- _printVals:        # TODO: test print everything
+ _printVals:
     cmpl $0, %ebx
     je _HPFret
 
-    
 
     xorl %eax, %eax
     movb IDENTIFICATIVO_OFFSET(%esi,%ecx,OBJECT_SIZE), %al  # loads the value at address esi + offset(ebx) into al. In C: A = *(ptr_arr + ptr_offset)

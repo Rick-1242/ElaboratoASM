@@ -1,29 +1,24 @@
 .section .data
 	#---------File I/O--------------
 	fd: .long 0
-	buffer: .asciz ""       # Spazio per il buffer di input  TODO: check wat teacher said about this.
-	userInput: .asciz "" 
+	userInput: .space 64
+	buffer: .asciz ""
 	#---------Testo-------------
 	menu: .asciz "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
 	msgHPF: .asciz "Pianificazione HPF:"
 	msgEDF: .asciz "Pianificazione EDF:"
-	noArgsExitmsg: .asciz "ERRORE: specificare un filename come argomento e si assicuri che questo esista.\n"
+	noArgsExitmsg: .asciz "ERRORE: specificare un filename come argomento.\n"
+	invalidFilenamemsg: .asciz "ERROE: si assicuri che il filename specificato esista.\n"
 	overFlowmsg: .asciz "ERRORE: overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto.\n"
 	NAN: .asciz "ERROE: uno dei valori al interno del file non é un numero.\n"
-	outOfRange1: .asciz "ERROE: il valore '"
+	outOfRange1: .asciz "ERROE: il valore '" 
 	outOfRange2: .asciz "' non rientra nelle specifice del progetto.\n"
 	#---------Offset------------
-	MAX_TOTAL_OBJECTS = 10
-	OBJECT_SIZE = 4			# Numero di interi(elemnti) per oggeto(ordine) 
-							# 4 elementi x 1 byte = 4 byte a oggetto
-	IDENTIFICATIVO_OFFSET = 0
-	DURATA_OFFSET = 1
-	SCANDEZA_OFFSET = 2
-	PRIORITA_OFFSET = 3
-
+	MAX_TOTAL_OBJECTS = 10	# 10 oggetti da 4 elemnti l'uno =  4 byte/oggeto
+	# TODO: test se funziona con piu di 10 cambaindo la costante. Dovrebbe.
 .section .bss
 	totalObjects: .long 0
-	ordiniArr: .fill MAX_TOTAL_OBJECTS, 4, 0	# create 40 1 byte entries wiht 0 that will be modified by funcions
+	ordiniArr: .fill MAX_TOTAL_OBJECTS, 4, 0
 	writeFile: .long 0
 
 .section .text
@@ -31,7 +26,7 @@
 
 _start:
 	# Get argument 1
-	popl %ebx # Non ci serve
+	popl %ebx
 	popl %ebx # argc[0]
 	popl %ebx # argc[1]
 	testl %ebx, %ebx
@@ -55,19 +50,20 @@ _start:
 	jmp _openFile			# TODO: call _openFile would be cool and so openfile wopuld be in another file
 
 _mainMENU:
-	leal menu, %eax
+	# Print menu
+	leal menu, %eax			
 	pushl %eax
 	call printSTR
 	addl $4, %esp
 
-
-	movl $3, %eax			# Read from stdin -> userInput
+	# Read from stdin -> userInput
+	movl $3, %eax			
 	movl $0, %ebx
 	movl $userInput, %ecx
-	movl $10, %edx
+	movl $64, %edx
 	int $0x80
 	
-	# Handle userInput and select task accordingly
+	# Handle userInput
 	movb userInput, %al		# Only need the first byte
 	cmpb $51, %al			# userInput = "3" ? exit
 	je _exit
@@ -76,22 +72,15 @@ _mainMENU:
 	cmpb $49, %al
 	je _EDF
 
-
 	jmp _mainMENU
 
+#------------------ Option 3 -> _exit ------------------
 _exit:
 	movl $1, %eax
 	movl $0, %ebx
 	int $0x80
 
-_noArgsExit:				# Exit task for when Args is not provided or is wrong
-	leal noArgsExitmsg, %ecx
-	pushl %ecx
-	call printERR
-	addl $4, %esp 
-	jmp _exit
-
-#------------Algo calls-------------------
+#------------------ Option 2 -> _HPF ------------------
 _HPF:
 	leal msgHPF, %eax
 	pushl %eax
@@ -107,6 +96,7 @@ _HPF:
 
 	jmp _mainMENU
 
+#------------------ Option 1 -> _EDF ------------------
 _EDF:
 	leal msgEDF, %eax
 	pushl %eax
@@ -123,7 +113,17 @@ _EDF:
 	jmp _mainMENU
 
 
-#------------File processing-------------------
+#------------------ Error managment ------------------
+_noArgsExit:
+	leal noArgsExitmsg, %ecx
+	pushl %ecx
+	call printERR
+	addl $4, %esp 
+	jmp _exit
+
+
+
+#------------------File processing------------------- TODO: Move to fileIO.s
 _openFile:
     movl $5, %eax       	# Syscall open
 							# Nome del file gia in ebx
@@ -131,7 +131,7 @@ _openFile:
     int $0x80
 
     cmpl $0, %eax 			# Se c'è un errore in apertura da errore
-    jl _noArgsExit
+    jl _invalidFilename
 	movl %eax, fd
 
  	xorl %esi, %esi 		# Clean esi(used as counter in _readLoop) and ecx(used as tempRis)
@@ -192,7 +192,20 @@ _storeTemp:
 _writeLoop:					# Prints and converts the data form array to our file.
 	jmp _closeFile
 
-#------------Error managment--------------
+#------------------Error managment--------------
+
+# _exitERROR: TODO: for fileIO.s
+# 	movl $1, %eax
+# 	movl $1, %ebx
+# 	int $0x80
+
+_invalidFilename:
+	leal invalidFilenamemsg, %ecx
+	pushl %ecx
+	call printERR
+	addl $4, %esp 
+	jmp _exit
+
 _closeFileExit:
 	movl $6, %eax
     movl fd, %ecx

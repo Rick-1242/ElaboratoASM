@@ -41,7 +41,7 @@ _loop:
     incl    %edx             	
     jmp     _loop            	# Repeat the loop
 _done:
-    ret                      	# Return the length in edx
+    ret
 
 #----------------------------------------------------------------------------------------------
 
