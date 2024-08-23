@@ -1,5 +1,8 @@
 .section .data
-    HPFmsg: .asciz "; "
+    colon: .asciz ":"
+    newLine: .asciz "\n"
+
+	TEMPO_MASSIMO = 100
     OBJECT_SIZE = 4	
     IDENTIFICATIVO_OFFSET = 0
     DURATA_OFFSET = 1
@@ -21,16 +24,17 @@ HPF:
     movl 8(%ebp), %esi      # esi points to the address of the first element in the array
     xorl %ecx, %ecx
 
- _printVals:
+ _printVals:        # TODO: test print everything
     cmpl $0, %ebx
     je _HPFret
 
+    
 
     xorl %eax, %eax
     movb IDENTIFICATIVO_OFFSET(%esi,%ecx,OBJECT_SIZE), %al  # loads the value at address esi + offset(ebx) into al. In C: A = *(ptr_arr + ptr_offset)
     call printINT
 
-    leal HPFmsg, %eax
+    leal colon, %eax
 	pushl %eax
 	call printSTR
 	addl $4, %esp
@@ -47,6 +51,11 @@ HPF:
 
 
 _HPFret:
+    leal newLine, %eax
+	pushl %eax
+	call printSTR
+	addl $4, %esp
+
     movl %ebp, %esp 
     pop %ebp 
     ret

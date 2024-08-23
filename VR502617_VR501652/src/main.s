@@ -5,8 +5,8 @@
 	buffer: .asciz ""
 	#---------Testo-------------
 	menu: .asciz "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
-	msgHPF: .asciz "Pianificazione HPF:"
-	msgEDF: .asciz "Pianificazione EDF:"
+	msgHPF: .asciz "Pianificazione HPF:\n"
+	msgEDF: .asciz "Pianificazione EDF:\n"
 	noArgsExitmsg: .asciz "ERRORE: specificare un filename come argomento.\n"
 	invalidFilenamemsg: .asciz "ERROE: si assicuri che il filename specificato esista.\n"
 	overFlowmsg: .asciz "ERRORE: overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto.\n"

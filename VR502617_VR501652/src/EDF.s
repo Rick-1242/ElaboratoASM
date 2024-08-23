@@ -1,4 +1,10 @@
 .section .data
+	colon: .asciz ":"
+	newLine: .asciz "\n"
+	conclusionemsg: .asciz "Conclusione: "
+	penaltymsg: .asciz "Penalty: "
+
+	MAX_TIME = 100
     OBJECT_SIZE = 4	
     IDENTIFICATIVO_OFFSET = 0
 	DURATA_OFFSET = 1
@@ -13,17 +19,82 @@ EDF:
     push %ebp 
     movl %esp, %ebp 
 
+	# to use only one algo we need the sortingID to be passed tought
+	movl 16(%ebp), %ebx		# totalObjects
+	#  12(%ebp)  			# writeFile
     movl 8(%ebp), %esi		# ordiniArr
-	movl 16(%ebp), %ecx		# totalObjects
 
-    pushl $2				# Scadenza
-    pushl %ecx
-    pushl %esi
+    pushl $2				# sortingID = Deadline
+    pushl %ebx				# totalObjects
+    pushl %esi				# ordiniArr
     call bubbleSort
     addl $12, %esp
 
-    
-_EDF_done:
+	xorl %ecx, %ecx			# currentTime index
+	jmp _newObject
+
+_nextObject:
+	# Keep track of what object we are working with, to not go out of the array.
+	dec %ebx
+	cmpl $0, %ebx			# Check if we have cycled all the objects
+    je _EDFDone
+	addl $4, %esi			# Move to the next object
+
+_newObject:
+	movb DURATA_OFFSET(%esi), %dl	# store leftover duration in temporary variable
+
+	# print ID:currentTime\n
+    movzbl IDENTIFICATIVO_OFFSET(%esi), %eax
+    call printINT
+	pushl $colon
+	call printSTR
+	addl $4, %esp
+    movl %ecx, %eax
+    call printINT
+	pushl $newLine
+	call printSTR
+	addl $4, %esp
+
+_timeLoop:
+	inc %ecx					# Advace time
+	cmpl $MAX_TIME, %ecx
+	je _EDFDone					# if currentTime = MAX_TIME then we are done.
+
+	dec %dl						# else time slot has been used by the item pointed to by esi 
+								# and we have to decrese it's duration.
+	jle _nextObject				# if we now have duration = 0 then we advance to next object.
+
+	jmp _timeLoop				# else we contiunue the loop
+
+
+_EDFDone:
+	# print Conclusione e Penalty
+	pushl $conclusionemsg	# print("Conclusione: ")
+	call printSTR
+	addl $4, %esp
+
+   	movl %ecx, %eax			# print(currentTime)
+    call printINT
+	
+	pushl $newLine			# print("\n")
+	call printSTR
+	addl $4, %esp
+	
+	pushl $penaltymsg		# print("Penalty: ")
+	call printSTR
+	addl $4, %esp
+
+	movl %ecx, %eax			# print(penalty)
+    call printINT
+	
+	pushl $newLine			# print("\n")
+	call printSTR
+	addl $4, %esp
+
+	pushl $newLine
+	call printSTR
+	addl $4, %esp
+
     movl %ebp, %esp 
     pop %ebp 
     ret
