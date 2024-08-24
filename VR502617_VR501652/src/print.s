@@ -38,7 +38,7 @@ _loop:
     movb    (%ecx,%edx,1), %al  # Load the byte at edi+edx into al
     cmpb    $0, %al          	# (null terminator)
     je      _done            	# If 0 then we are done
-    incl    %edx             	
+    inc    %edx             	
     jmp     _loop            	# Repeat the loop
 _done:
     ret
@@ -120,7 +120,7 @@ _continua_a_dividere:
 	jge _dividi
 
 	pushl %eax			# salva nello stack il contenuto di %eax che sara un elemento da stampare
-	incl   %ecx			# incrementa di 1 il valore di %ecx per
+	inc   %ecx			# incrementa di 1 il valore di %ecx per
 						# contare quante push eseguo;
 						# ad ogni push salvo nello stack una cifra 
 						# del numero (a partire da quella meno
@@ -139,7 +139,7 @@ _dividi:
 						# il resto in %edx
 
 	pushl  %edx			# salva il resto della divisione nello stack
-	incl   %ecx			# incrementa il contatore delle cifre 
+	inc   %ecx			# incrementa il contatore delle cifre 
 						# salvate nello stack
 
 	jmp	_continua_a_dividere 
@@ -152,7 +152,7 @@ _stampa:
 
 	movb  %al, char	
 	addb  $48, char		# $5 + $48 = "5"
-	decl   %ebx
+	dec   %ebx
   
 	pushw %bx			# char count
 	movl   $4, %eax

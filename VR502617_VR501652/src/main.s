@@ -87,11 +87,12 @@ _HPF:
 	call printSTR
 	addl $4, %esp
 
+	leal ordiniArr, %eax
+	pushl $3	# sortingID = Priority
 	pushl totalObjects
 	pushl writeFile
-	leal ordiniArr, %eax
 	pushl %eax
-	call HPF
+	call ALGO
 	addl $12, %esp
 
 	jmp _mainMENU
@@ -103,12 +104,13 @@ _EDF:
 	call printSTR
 	addl $4, %esp
 
+	leal ordiniArr, %eax
+	pushl $2	# sortingID = Deadline
 	pushl totalObjects
 	pushl writeFile
-	leal ordiniArr, %eax
 	pushl %eax	
-	call EDF
-	addl $12, %esp
+	call ALGO
+	addl $16, %esp
 
 	jmp _mainMENU
 
@@ -120,8 +122,6 @@ _noArgsExit:
 	call printERR
 	addl $4, %esp 
 	jmp _exit
-
-
 
 #------------------File processing------------------- TODO: Move to fileIO.s
 _openFile:
