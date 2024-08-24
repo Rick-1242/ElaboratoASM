@@ -10,7 +10,8 @@
 	noArgsExitmsg: .asciz "ERRORE: specificare un filename come argomento.\n"
 	invalidFilenamemsg: .asciz "ERROE: si assicuri che il filename specificato esista.\n"
 	overFlowmsg: .asciz "ERRORE: overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto.\n"
-	NAN: .asciz "ERROE: uno dei valori al interno del file non é un numero.\n"
+	NANmsg: .asciz "ERROE: uno dei valori al interno del file non é un numero.\n"
+	missingEOFmsg: .asciz "ERRORE: end of file non alla fine di una nuova lina. Perfavore inserica una nuova linea vuota alla fine del file\n Oppure non 3 virgole per linea\n"
 	outOfRange1: .asciz "ERROE: il valore '" 
 	outOfRange2: .asciz "' non rientra nelle specifice del progetto.\n"
 	#---------Offset------------
@@ -157,18 +158,18 @@ _readLoop:					# Gets and converts the data from the file to our array.
     int $0x80
 
     cmpl $0, %eax       	# ERROR or EOF check -> close and back to menu
-	je _checkVals  			# TODO: if everyting good then rember to close the file.
-    jl _closeFile
+	je _checkVals
+    jl _closeFileExit
 
 	movzbl buffer, %ebx
 	popl %eax
 
     cmpb $10, %bl			# Check if buffer char is (separator or LF or CR)
     je _storeTemp	 
-	cmpb $44, %bl		
-    je _storeTemp			# If sep,  storeTemp and skip char
 	cmpb $13, %bl
     je _readLoop	 
+	cmpb $44, %bl		
+    je _storeTemp			# If sep,  storeTemp and skip char
 
 	cmpb $48, %bl
 	jb _NAN
@@ -220,17 +221,29 @@ _overFlow:
 	jmp _closeFileExit
 
 _NAN:
-	leal NAN, %ecx
+	leal NANmsg, %ecx
 	pushl %ecx
 	call printERR
 	addl $4, %esp 
 	jmp _closeFileExit
 
+_missingEOF:
+	leal missingEOFmsg, %ecx
+	pushl %ecx
+	call printERR
+	addl $4, %esp 
+	jmp _closeFileExit
+
+
 _checkVals:	# Order of operaations not in locial order for better pipeline integration
 	movl %esi, %eax
+	movl %eax, %ebx
+	andl $3, %eax
+	jnz _missingEOF			# Jump if totalElements not divisible by 4 and therefor EOF is not on a new line. or smething wrong.
+	movl %ebx, %eax
 
 	dec	%esi
-	sar $2, %eax
+	sar $2, %eax			# total Elements / 4 = totalObjects
 
 	movl %esi, %ecx			# Decremeting count
 	movl %eax, totalObjects	# For sorting algo

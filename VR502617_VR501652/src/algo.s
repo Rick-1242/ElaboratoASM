@@ -6,15 +6,15 @@
 
 	MAX_TIME = 100
     OBJECT_SIZE = 4	
-    IDENTIFICATIVO_OFFSET = 0
-	DURATA_OFFSET = 1
-	SCANDEZA_OFFSET = 2
-	PRIORITA_OFFSET = 3
+    ID_OFFSET = 0
+	DURATION_OFFSET = 1
+	DEADLINE_OFFSET = 2
+	PRIORITY_OFFSET = 3
 .section .text
     .globl ALGO
+	.globl calcPenalty
 
 .type ALGO, @function
-
 ALGO:
     push %ebp 
     movl %esp, %ebp 
@@ -24,7 +24,6 @@ ALGO:
 	#  12(%ebp)  			# writeFile
     movl 8(%ebp), %esi		# ordiniArr
 
-	dec %ebx				# set N-1 for array values not size
 
     pushl 20(%ebp)			# sortingID
     pushl %ebx				# totalObjects
@@ -32,23 +31,31 @@ ALGO:
     call bubbleSort
     addl $12, %esp
 
+	dec %ebx				# set N-1 for array values not size
 	xor %ecx, %ecx			# currentTime index
+	xor %eax, %eax			# Penalty
 
 	cmpl $3, 20(%ebp)		# if not HPF then contiune normaly
 	jne _newObject
 
 	# else set esi to the last item in the array.
-	shl $2, %ebx	# Multyply by 4
-	addl %ebx, %esi # Set esi to the end of the array
-	shr $2, %ebx	# Reset ebx
+	shl $2, %ebx			# Multyply by 4
+	addl %ebx, %esi 		# Set esi to the end of the array
+	shr $2, %ebx			# Reset ebx
 	jmp _newObject
 
 _nextObject:
-	# Keep track of what object we are working with, to not go out of the array.
+	# Keep track of what object we are working with, to not go out of bounds.
 	cmpl $0, %ebx			# Check if we have cycled all the objects
     je _ALGODone
 	dec %ebx
 
+	cmpb %cl, DEADLINE_OFFSET(%esi)	# compare current time to deadline
+	jge _calcNextObject
+
+	call calcPenalty		# if deadline is < current time then calcPenalty
+
+_calcNextObject:
 	addl $4, %esi			# Move to the next object
 	cmpl $3, 20(%ebp)		# If not HPF we can continiue
 	jne _newObject
@@ -56,10 +63,11 @@ _nextObject:
 	subl $8, %esi			# Else we need to do the opposite.
 
 _newObject:
-	movb DURATA_OFFSET(%esi), %dl	# store leftover duration in temporary variable
+	movb DURATION_OFFSET(%esi), %dl	# store leftover duration
+	pushl %eax
 
 	# print ID:currentTime\n
-    movzbl IDENTIFICATIVO_OFFSET(%esi), %eax
+    movzbl ID_OFFSET(%esi), %eax
     call printINT
 	pushl $colon
 	call printSTR
@@ -70,10 +78,12 @@ _newObject:
 	call printSTR
 	addl $4, %esp
 
+	popl %eax
+
 _timeLoop:
 	inc %ecx					# Advace time
-	cmpl $MAX_TIME, %ecx
-	je _ALGODone					# if currentTime = MAX_TIME then we are done.
+	cmpl $MAX_TIME, %ecx		# if currentTime = MAX_TIME then we are done.
+	je _ALGODone
 
 	dec %dl						# else time slot has been used by the item pointed to by esi 
 								# and we have to decrese it's duration.
@@ -82,35 +92,61 @@ _timeLoop:
 	jmp _timeLoop				# else we contiunue the loop
 
 
+
+
 # TODO: writing to file option HERE. always if check no more call printSTR. JMP printALGOSTR
 # in print algo str IF writeFile.
 
 
 _ALGODone:
-	# TODO: calculate penalty of last object
+	call calcPenalty	# FIXME: problme here
 
-	pushl $conclusionemsg	# print("Conclusione: ")
+	pushl %eax
+
+	pushl $conclusionemsg		# print("Conclusione: ")
 	call printSTR
 	addl $4, %esp
 
-   	movl %ecx, %eax			# print(currentTime)
+   	movl %ecx, %eax				# print(currentTime)
     call printINT
 	
-	pushl $newLine			# print("\n")
+	pushl $newLine				# print("\n")
 	call printSTR
 	addl $4, %esp
 	
-	pushl $penaltymsg		# print("Penalty: ")
+	pushl $penaltymsg			# print("Penalty: ")
 	call printSTR
 	addl $4, %esp
 
-	movl %ecx, %eax			# print(penalty)
+	popl %eax					# print(penalty)
     call printINT
 	
-	pushl $newLine			# print("\n")
+	pushl $newLine				# print("\n")
 	call printSTR
 	addl $4, %esp
 
     movl %ebp, %esp 
+    pop %ebp 
+    ret
+
+
+.type calcPenalty, @function
+calcPenalty: # Penalty = (current_time - deadline) * priority + Penalty. This is stored in eax
+	push %ebp 
+    movl %esp, %ebp 
+	push %ebx
+	push %ecx
+
+	movl DEADLINE_OFFSET(%esi), %ebx   # Load deadline into %ebx
+	subl %ebx, %ecx                    # current_time - deadline (result in %ecx)
+
+	movl PRIORITY_OFFSET(%esi), %ebx  
+	imull %ebx, %ecx                   # (current_time - deadline) * priority (result in %ecx)
+
+	addl %ecx, %eax                    # Penalty = (current_time - deadline) * priority + Penalty
+                 
+	pop %ecx
+	pop %ebx
+	movl %ebp, %esp 
     pop %ebp 
     ret

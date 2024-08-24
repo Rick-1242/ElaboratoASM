@@ -20,6 +20,7 @@ bubbleSort:
     movl 12(%ebp), %ecx		# Load number of objects (n) into ECX
     movl 8(%ebp), %esi		# Load base address of array (arr) into ESI
 
+    decl %ecx
     jle done				# If no objects or only one, we're done
 
 outer_loop:
@@ -39,11 +40,11 @@ inner_loop:
 
 no_swap:
     addl $4, %esi			# Move to the next object
-    dec %edi
+    decl %edi
     jnz inner_loop			# If the inner loop counter is not zero, continue inner loop
 
     movl 8(%ebp), %esi		# Reset %esi to the start of the array
-    dec %ecx
+    decl %ecx
     jnz outer_loop			# If the outer loop counter is not zero, continue outer loop
 
 done:
