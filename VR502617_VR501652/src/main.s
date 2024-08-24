@@ -1,6 +1,6 @@
 .section .data
 	#---------File I/O--------------
-	fd: .long 0
+	fd1: .long 0
 	userInput: .space 64
 	buffer: .asciz ""
 	#---------Testo-------------
@@ -48,7 +48,15 @@ _start:
 
 	# push %edx
 	# push (ordiniArr) / the address
-	jmp _openFile			# TODO: call _openFile would be cool and so openfile wopuld be in another file
+
+_readFileIO:
+	jmp _openFile
+	# pushl fd1
+	# pushl filename 
+	# pushl writeFile
+	# call openFile
+	# call readFile
+	# call closeFile
 
 _mainMENU:
 	# Print menu
@@ -133,7 +141,7 @@ _openFile:
 
     cmpl $0, %eax 			# Se c'è un errore in apertura da errore
     jl _invalidFilename
-	movl %eax, fd
+	movl %eax, fd1
 
  	xorl %esi, %esi 		# Clean esi(used as counter in _readLoop) and ecx(used as tempRis)
 	xorl %eax, %eax
@@ -144,7 +152,7 @@ _openFile:
 
 _closeFile:
     movl $6, %eax
-    movl fd, %ecx
+    movl fd1, %ecx
     int $0x80
 	jmp _mainMENU			# TODO: Quando sara una funzione deve popare ebp e returnare.
 
@@ -152,7 +160,7 @@ _readLoop:					# Gets and converts the data from the file to our array.
 	pushl %eax
 
     movl $3, %eax        	# syscall read
-    movl fd, %ebx        	# File descriptor
+    movl fd1, %ebx        	# File descriptor
     movl $buffer, %ecx   	# same as leal buffer, %ecx
     movl $1, %edx			# Lenght
     int $0x80
@@ -209,7 +217,7 @@ _invalidFilename:
 
 _closeFileExit:
 	movl $6, %eax
-    movl fd, %ecx
+    movl fd1, %ecx
     int $0x80
 	jmp _exitERROR
 
