@@ -8,29 +8,14 @@
 	.global printINT
 
 	.type strlen, @function
-
 	.type printSTR, @function	# pushl $msg
 								# call printSTR
 								# addl $4, %esp
-
 	.type printERR, @function 	# pushl $msg
 	                        	# call printSTR
 	                        	# addl $4, %esp
-
 	.type printINT, @function	# movl num, %eax
 								# call printINT
-
-	# movl $0,%ebx
-	# movb ordiniArr + SCANDEZA_OFFSET(,%ebx, OBJECT_SIZE), %al
-	# call _printINT # for output
-	# call getArgs
-
-
-	# leal ordiniArr(%ecx), %ebx
-	# pushl %edx			# print(buffer)
-	# pushl %ebx
-	# call printSTR
-	# addl $8, %esp	
 
 strlen:
     xorl    %edx, %edx       	# Clear the edx register (length counter set to 0)
@@ -48,7 +33,6 @@ _done:
 printSTR:
 	push %ebp 
     movl %esp, %ebp
-
 	push %ebx
 	push %eax
 	push %ecx
@@ -67,7 +51,6 @@ printSTR:
 	pop %ecx
 	pop %eax
 	pop %ebx
-
     movl %ebp, %esp 
     pop %ebp 
     ret
@@ -104,7 +87,6 @@ printERR:
 printINT: 
 	push %ebp
 	movl %esp, %ebp
-
 	push %ebx
 	push %eax
 	push %ecx
@@ -171,5 +153,4 @@ _fine__printINT:
 	pop %ebx
   	movl %ebp, %esp 
   	pop %ebp      
-
 	ret

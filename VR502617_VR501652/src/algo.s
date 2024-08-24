@@ -99,8 +99,11 @@ _timeLoop:
 
 
 _ALGODone:
+	cmpb %cl, DEADLINE_OFFSET(%esi)	# compare current time to deadline
+	jge _ALGOret
 	call calcPenalty	# FIXME: problme here
 
+_ALGOret:
 	pushl %eax
 
 	pushl $conclusionemsg		# print("Conclusione: ")
@@ -137,11 +140,11 @@ calcPenalty: # Penalty = (current_time - deadline) * priority + Penalty. This is
 	push %ebx
 	push %ecx
 
-	movl DEADLINE_OFFSET(%esi), %ebx   # Load deadline into %ebx
-	subl %ebx, %ecx                    # current_time - deadline (result in %ecx)
+	movzbl DEADLINE_OFFSET(%esi), %ebx   # Load deadline into %ebx
+	subl %ebx, %ecx                   # current_time - deadline (result in %cl)
 
-	movl PRIORITY_OFFSET(%esi), %ebx  
-	imull %ebx, %ecx                   # (current_time - deadline) * priority (result in %ecx)
+	movzbl PRIORITY_OFFSET(%esi), %ebx  
+	imull %ebx, %ecx                   # (current_time - deadline) * priority (result in %cl)
 
 	addl %ecx, %eax                    # Penalty = (current_time - deadline) * priority + Penalty
                  

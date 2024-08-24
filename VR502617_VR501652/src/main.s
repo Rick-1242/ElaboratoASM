@@ -195,23 +195,23 @@ _writeLoop:					# Prints and converts the data form array to our file.
 
 #------------------Error managment--------------
 
-# _exitERROR: TODO: for fileIO.s
-# 	movl $1, %eax
-# 	movl $1, %ebx
-# 	int $0x80
+_exitERROR:
+	movl $1, %eax
+	movl $1, %ebx
+	int $0x80
 
 _invalidFilename:
 	leal invalidFilenamemsg, %ecx
 	pushl %ecx
 	call printERR
 	addl $4, %esp 
-	jmp _exit
+	jmp _exitERROR
 
 _closeFileExit:
 	movl $6, %eax
     movl fd, %ecx
     int $0x80
-	jmp _exit
+	jmp _exitERROR
 
 _overFlow:
 	leal overFlowmsg, %ecx
