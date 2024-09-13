@@ -2,17 +2,19 @@
 	char: .byte 0
 
 .section .text
-	.global strlen
+	.globl strlen
+	.globl printWRITESTR
     .globl printSTR
     .globl printERR
-	.global printINT
+	.globl printINT
 
 	.type strlen, @function
+	.type printWRITESTR, @function
 	.type printSTR, @function	# pushl $msg
 								# call printSTR
 								# addl $4, %esp
 	.type printERR, @function 	# pushl $msg
-	                        	# call printSTR
+	                        	# call printERR
 	                        	# addl $4, %esp
 	.type printINT, @function	# movl num, %eax
 								# call printINT
@@ -30,6 +32,42 @@ _done:
 
 #----------------------------------------------------------------------------------------------
 
+printWRITESTR:
+	push %ebp 
+    movl %esp, %ebp
+	push %ebx
+	push %eax
+	push %ecx
+	push %edx
+	
+
+	# 8(%ebp) == &msg
+	# 12(%ebp) == file descriptor
+
+	cmpl $0, 12(%ebp)
+	je _print
+
+	pushl 12(%ebp) 				# file
+	pushl %eax
+	call printSTR
+	addl $8, %esp
+
+	_print:
+		pushl $1 				# stdout
+		pushl 8(%ebp)
+		call printSTR
+		addl $8, %esp
+
+	pop %edx
+	pop %ecx
+	pop %eax
+	pop %ebx
+    movl %ebp, %esp 
+    pop %ebp 
+    ret
+
+#----------------------------------------------------------------------------------------------
+
 printSTR:
 	push %ebp 
     movl %esp, %ebp
@@ -42,7 +80,7 @@ printSTR:
 	call strlen			# strlen is in edx
 
     movl $4, %eax 		# syscall number for write()
-    movl $1, %ebx 		# file descriptor for stdout
+    movl 12(%ebp), %ebx 		# file descriptor for stdout
 	# msg address in already in ecx
 	# len  in already in edx
     int $0x80

@@ -21,13 +21,13 @@ ALGO:
 
 	# 20(%ebp)				# sortingID
 	movl 16(%ebp), %ebx		# totalObjects
-	#  12(%ebp)  			# writeFile
-    movl 8(%ebp), %esi		# ordiniArr
+	#  12(%ebp)  			# fd2. if != 0 then write to file
+    movl 8(%ebp), %esi		# &ordiniArr
 
 
     pushl 20(%ebp)			# sortingID
     pushl %ebx				# totalObjects
-    pushl %esi				# ordiniArr
+    pushl %esi				# &ordiniArr
     call bubbleSort
     addl $12, %esp
 
@@ -69,14 +69,17 @@ _newObject:
 	# print ID:currentTime\n
     movzbl ID_OFFSET(%esi), %eax
     call printINT
+
+	pushl $1 				# stdout
 	pushl $colon
 	call printSTR
-	addl $4, %esp
+	addl $8, %esp
     movl %ecx, %eax
     call printINT
+	pushl $1 				# stdout
 	pushl $newLine
 	call printSTR
-	addl $4, %esp
+	addl $8, %esp
 
 	popl %eax
 
@@ -101,32 +104,36 @@ _timeLoop:
 _ALGODone:
 	cmpb %cl, DEADLINE_OFFSET(%esi)	# compare current time to deadline
 	jge _ALGOret
-	call calcPenalty	# FIXME: problme here
+	call calcPenalty
 
 _ALGOret:
 	pushl %eax
 
+	pushl $1 				# stdout
 	pushl $conclusionemsg		# print("Conclusione: ")
 	call printSTR
-	addl $4, %esp
+	addl $8, %esp
 
    	movl %ecx, %eax				# print(currentTime)
     call printINT
 	
+	pushl $1 				# stdout
 	pushl $newLine				# print("\n")
 	call printSTR
-	addl $4, %esp
-	
+	addl $8, %esp
+
+	pushl $1 				# stdout
 	pushl $penaltymsg			# print("Penalty: ")
 	call printSTR
-	addl $4, %esp
+	addl $8, %esp
 
 	popl %eax					# print(penalty)
     call printINT
-	
+
+	pushl $1 				# stdout
 	pushl $newLine				# print("\n")
 	call printSTR
-	addl $4, %esp
+	addl $8, %esp
 
     movl %ebp, %esp 
     pop %ebp 
