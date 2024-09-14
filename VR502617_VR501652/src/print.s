@@ -48,7 +48,7 @@ printWRITESTR:
 	je _print
 
 	pushl 12(%ebp) 				# file
-	pushl %eax
+	pushl 8(%ebp)
 	call printSTR
 	addl $8, %esp
 

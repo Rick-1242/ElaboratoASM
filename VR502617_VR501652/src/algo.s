@@ -1,4 +1,6 @@
 .section .data
+	tempfd: .long 0
+
 	colon: .asciz ":"
 	newLine: .asciz "\n"
 	conclusionemsg: .asciz "Conclusione: "
@@ -21,7 +23,8 @@ ALGO:
 
 	# 20(%ebp)				# sortingID
 	movl 16(%ebp), %ebx		# totalObjects
-	#  12(%ebp)  			# fd2. if != 0 then write to file
+	movl 12(%ebp), %eax		# tempfd. if != 0 then write to file
+	movl %eax, tempfd
     movl 8(%ebp), %esi		# &ordiniArr
 
 
@@ -70,16 +73,29 @@ _newObject:
     movzbl ID_OFFSET(%esi), %eax
     call printINT
 
-	pushl $1 				# stdout
+	pushl tempfd				# file to write
 	pushl $colon
-	call printSTR
+	call printWRITESTR
 	addl $8, %esp
+	
+	# pushl $1 				# stdout
+	# pushl $colon
+	# call printSTR
+	# addl $8, %esp
+
     movl %ecx, %eax
     call printINT
-	pushl $1 				# stdout
+	
+	pushl tempfd				# file to write
 	pushl $newLine
-	call printSTR
+	call printWRITESTR
 	addl $8, %esp
+	
+	
+	# pushl $1 				# stdout
+	# pushl $newLine
+	# call printSTR
+	# addl $8, %esp
 
 	popl %eax
 
@@ -109,31 +125,52 @@ _ALGODone:
 _ALGOret:
 	pushl %eax
 
-	pushl $1 				# stdout
+	pushl tempfd					# file to write
 	pushl $conclusionemsg		# print("Conclusione: ")
-	call printSTR
+	call printWRITESTR
 	addl $8, %esp
+
+	# pushl $1 					# stdout
+	# pushl $conclusionemsg		# print("Conclusione: ")
+	# call printSTR
+	# addl $8, %esp
 
    	movl %ecx, %eax				# print(currentTime)
     call printINT
 	
-	pushl $1 				# stdout
+	pushl tempfd					# file to write
 	pushl $newLine				# print("\n")
-	call printSTR
+	call printWRITESTR
 	addl $8, %esp
 
-	pushl $1 				# stdout
+	# pushl $1 					# stdout
+	# pushl $newLine			# print("\n")
+	# call printSTR
+	# addl $8, %esp
+
+	pushl tempfd					# file to write
 	pushl $penaltymsg			# print("Penalty: ")
-	call printSTR
+	call printWRITESTR
 	addl $8, %esp
+
+	# pushl $1 					# stdout
+	# pushl $penaltymsg			# print("Penalty: ")
+	# call printSTR
+	# addl $8, %esp
 
 	popl %eax					# print(penalty)
     call printINT
 
-	pushl $1 				# stdout
+	pushl tempfd					# file to write
 	pushl $newLine				# print("\n")
-	call printSTR
+	call printWRITESTR
 	addl $8, %esp
+
+
+	# pushl $1 					# stdout
+	# pushl $newLine			# print("\n")
+	# call printSTR
+	# addl $8, %esp
 
     movl %ebp, %esp 
     pop %ebp 
