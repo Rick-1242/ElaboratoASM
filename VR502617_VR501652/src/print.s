@@ -2,20 +2,35 @@
 	char: .byte 0
 
 .section .text
-	.globl strlen
-	.globl printWRITESTR
-    .globl printSTR
-    .globl printERR
-	.globl printINT
+	.globl strlen			# Calculates the lenght of a string given in %ecx
+	.globl printWRITEINT
+	.globl printWRITESTR	# Checks if the File Descriport is active and therefore the code has been lounched in write mode.
+							# if so then it writes to the file and prints to std-out. Else it only prints to std-out.
+    .globl printSTR			# Prints a string to std-out
+    .globl printERR			# Prints a string to std-err
+	.globl printINT			# Converts an integer into a string and prints it to std-out
 
-	.type strlen, @function
-	.type printWRITESTR, @function
+	.type strlen, @function	# movl $msg, %ecx 		# movl $msg, %ecx == leal msg, %ecx
+							# call strlen
+	
+	.type printWRITEINT, @function	# movl num, %eax
+									# pushl fd2
+									# call printWRITEINT
+									# addl $4, %esp
+
+	.type printWRITESTR, @function	# pushl fd2	
+									# pushl $msg
+									# call printWRITESTR
+									# addl $8, %esp
+
 	.type printSTR, @function	# pushl $msg
 								# call printSTR
 								# addl $4, %esp
+
 	.type printERR, @function 	# pushl $msg
 	                        	# call printERR
 	                        	# addl $4, %esp
+
 	.type printINT, @function	# movl num, %eax
 								# call printINT
 
@@ -28,6 +43,45 @@ _loop:
     inc    %edx             	
     jmp     _loop            	# Repeat the loop
 _done:
+    ret
+
+
+#----------------------------------------------------------------------------------------------
+
+printWRITEINT:
+	push %ebp 
+    movl %esp, %ebp
+	push %ebx
+	push %eax
+	push %ecx
+	push %edx
+	
+	# %eax		== number
+	# 8(%ebp)	== file descriptor
+
+	cmpl $0, 8(%ebp)
+	je _printINT
+
+	pushl %eax
+
+	pushl 8(%ebp)		# file
+	call printINT
+	addl $4, %esp
+
+	popl %eax
+
+	_printINT:
+		pushl $1		# std-out
+		call printINT
+		addl $4, %esp
+
+
+	pop %edx
+	pop %ecx
+	pop %eax
+	pop %ebx
+    movl %ebp, %esp 
+    pop %ebp 
     ret
 
 #----------------------------------------------------------------------------------------------
@@ -45,14 +99,14 @@ printWRITESTR:
 	# 12(%ebp) == file descriptor
 
 	cmpl $0, 12(%ebp)
-	je _print
+	je _printSTR
 
 	pushl 12(%ebp) 				# file
 	pushl 8(%ebp)
 	call printSTR
 	addl $8, %esp
 
-	_print:
+	_printSTR:
 		pushl $1 				# stdout
 		pushl 8(%ebp)
 		call printSTR
@@ -130,9 +184,9 @@ printINT:
 	push %ecx
 	push %edx
 
-	# movzbl 8(%ebp), %al	# carico il parametro passato in al FIXME: this is a big limitation. HAS BEEN REMOVED RN
-	movl   $0, %ecx		# carica il numero 0 in %ecx
+	# 8(%ebp)	== where to output so file or std-out
 
+	movl   $0, %ecx		# carica il numero 0 in %ecx
 
 _continua_a_dividere:
 
@@ -175,8 +229,9 @@ _stampa:
 	dec   %ebx
   
 	pushw %bx			# char count
+
 	movl   $4, %eax
-	movl   $1, %ebx
+	movl   8(%ebp), %ebx
 	leal  char, %ecx		
 	movl    $1, %edx
 	int $0x80

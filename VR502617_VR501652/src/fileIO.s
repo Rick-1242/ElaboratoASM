@@ -152,7 +152,9 @@ _outOfRange:
 	addl $4, %esp 
 
 	# number is already in eax
+	pushl $1
 	call printINT
+	addl $4, %esp
 
 	leal outOfRange2, %ecx
 	pushl %ecx

@@ -71,31 +71,23 @@ _newObject:
 
 	# print ID:currentTime\n
     movzbl ID_OFFSET(%esi), %eax
-    call printINT
-
+	pushl tempfd
+    call printWRITEINT
+	addl $4, %esp
 	pushl tempfd				# file to write
 	pushl $colon
 	call printWRITESTR
 	addl $8, %esp
-	
-	# pushl $1 				# stdout
-	# pushl $colon
-	# call printSTR
-	# addl $8, %esp
 
     movl %ecx, %eax
-    call printINT
-	
+	pushl tempfd
+    call printWRITEINT
+	addl $4, %esp
+
 	pushl tempfd				# file to write
 	pushl $newLine
 	call printWRITESTR
 	addl $8, %esp
-	
-	
-	# pushl $1 				# stdout
-	# pushl $newLine
-	# call printSTR
-	# addl $8, %esp
 
 	popl %eax
 
@@ -125,52 +117,35 @@ _ALGODone:
 _ALGOret:
 	pushl %eax
 
-	pushl tempfd					# file to write
+	pushl tempfd				# file to write
 	pushl $conclusionemsg		# print("Conclusione: ")
 	call printWRITESTR
 	addl $8, %esp
 
-	# pushl $1 					# stdout
-	# pushl $conclusionemsg		# print("Conclusione: ")
-	# call printSTR
-	# addl $8, %esp
-
    	movl %ecx, %eax				# print(currentTime)
-    call printINT
-	
-	pushl tempfd					# file to write
+	pushl tempfd
+    call printWRITEINT
+	addl $4, %esp
+
+	pushl tempfd				# file to write
 	pushl $newLine				# print("\n")
 	call printWRITESTR
 	addl $8, %esp
 
-	# pushl $1 					# stdout
-	# pushl $newLine			# print("\n")
-	# call printSTR
-	# addl $8, %esp
-
-	pushl tempfd					# file to write
+	pushl tempfd				# file to write
 	pushl $penaltymsg			# print("Penalty: ")
 	call printWRITESTR
 	addl $8, %esp
 
-	# pushl $1 					# stdout
-	# pushl $penaltymsg			# print("Penalty: ")
-	# call printSTR
-	# addl $8, %esp
-
 	popl %eax					# print(penalty)
-    call printINT
+	pushl tempfd
+    call printWRITEINT
+	addl $4, %esp
 
-	pushl tempfd					# file to write
+	pushl tempfd				# file to write
 	pushl $newLine				# print("\n")
 	call printWRITESTR
 	addl $8, %esp
-
-
-	# pushl $1 					# stdout
-	# pushl $newLine			# print("\n")
-	# call printSTR
-	# addl $8, %esp
 
     movl %ebp, %esp 
     pop %ebp 
