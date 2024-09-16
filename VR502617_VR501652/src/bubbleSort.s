@@ -9,7 +9,7 @@
 bubbleSort:
     push %ebp
     movl %esp, %ebp
-    push %eax				# Save registers
+    push %eax
     push %ebx
     push %ecx
     push %edx

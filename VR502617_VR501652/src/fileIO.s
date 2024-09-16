@@ -3,7 +3,7 @@
 	invalidFilenamemsg: .asciz "ERROE: si assicuri che il filename specificato esista.\n"
 	overFlowmsg: .asciz "ERRORE: overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto.\n"
 	NANmsg: .asciz "ERROE: uno dei valori al interno del file non é un numero.\n"
-	missingEOFmsg: .asciz "ERRORE: end of file non alla fine di una nuova lina. Perfavore inserica una nuova linea vuota alla fine del file\n Oppure non 3 virgole per linea\n"
+	missingEOFmsg: .asciz "ERRORE: end of file non alla fine di una nuova lina. Perfavore inserica una nuova linea vuota alla fine del file\n Oppure una delle righe nel file contiene piu o meno di 3 spearatori.\n"
 	outOfRange1: .asciz "ERROE: il valore '" 
 	outOfRange2: .asciz "' non rientra nelle specifice del progetto.\n"
 .section .text
@@ -22,12 +22,12 @@ openFile:
 	# 12(%ebp)		filename
 
     movl $5, %eax       	# Syscall open
-	movl 12(%ebp), %ebx		# Nome del file 
+	movl 12(%ebp), %ebx		# filename
     movl 8(%ebp), %ecx		# opening mode
-	movl $0644, %edx        # Mode: rw-r--r-- this is if a file is created.
+	movl $0644, %edx        # Mode: rw-r--r--.  If a file is created.
     int $0x80
 
-    cmpl $0, %eax 			# Se c'è un errore in apertura da errore
+    cmpl $0, %eax 			# Opening file error check
     jl _invalidFilename
 
 	movl %ebp, %esp 
@@ -53,6 +53,8 @@ closeFile:
 	push %ebp
 	movl %esp, %ebp
 
+	# 8(%ebp)	file descriptor
+
     movl $6, %eax
     movl 8(%ebp), %ecx
     int $0x80
@@ -61,7 +63,6 @@ closeFile:
   	pop %ebp      
 	ret
 
-
 #------------------readFile-------------------
 .type readFile, @function
 readFile: 
@@ -69,10 +70,10 @@ readFile:
 	movl %esp, %ebp
 
 	# 8(%ebp)	&ordiniArr
-	# 12(%ebp)  fd
+	# 12(%ebp)  file descriptor
 
-	movl 8(%ebp), %esi		# esi is base adres for ordiniArr
- 	xorl %edi, %edi 		# Clean edi(used as counter in _readLoop) and ecx(used as tempRis)
+	movl 8(%ebp), %esi		# esi is the base addres for ordiniArr
+ 	xorl %edi, %edi 		# Clean edi(used as counter in _readLoop) and ecx(used as temporary result)
 	xorl %eax, %eax
 
 _readLoop:					# Gets and converts the data from the file to our array.
@@ -107,7 +108,7 @@ _readLoop:					# Gets and converts the data from the file to our array.
   	movl $10, %edx
   	mulb %dl
   	addb %bl, %al			
-	jc _overFlow	# If the result is over 255 it detecrs the overflow 
+	jc _overFlow			# If the result is over 255 it detecrs the overflow 
 
     jmp _readLoop
 
@@ -163,7 +164,8 @@ _outOfRange:
 
 	jmp _closeFileExit
 
-_checkVals:	# Order of operations not in logical order for better pipeline integration
+_checkVals:	# Checks the values read from thehe file to determine if they are within their rages.
+	# Order of operations not in logical order for better pipeline integration
 	movl %edi, %eax
 	movl %eax, %ebx
 	andl $3, %eax
@@ -178,37 +180,37 @@ _checkVals:	# Order of operations not in logical order for better pipeline integ
 	xorl %eax, %eax
 
 _checkValsLoop:
-	movb (%esi, %ecx,1), %al # 1 <= P <= 5
+	movb (%esi, %ecx,1), %al # 1 <= PRIORITA <= 5
 	cmpb $1, %al
 	jl _outOfRange
 	cmpb $5, %al
 	jg _outOfRange
 
 	dec %ecx
-	movb (%esi, %ecx,1), %al # 1 <= S <= 100
+	movb (%esi, %ecx,1), %al # 1 <= SCADENZA <= 100
 	cmpb $1, %al
 	jl _outOfRange
 	cmpb $100, %al
 	jg _outOfRange
 
 	dec %ecx
-	movb (%esi, %ecx,1), %al # 1 <= D <= 10
+	movb (%esi, %ecx,1), %al # 1 <= DURATA <= 10
 	cmpb $1, %al
 	jl _outOfRange
 	cmpb $10, %al
 	jg _outOfRange
 
 	dec %ecx
-	movb (%esi, %ecx,1), %al # ID (1 <= ID <= 127)
+	movb (%esi, %ecx,1), %al # 1 <= ID <= 127
 	cmpb $1, %al
 	jl _outOfRange
 	cmpb $127, %al
 	jg _outOfRange
 
 	dec %ecx
-	cmpl $0, %ecx			# if ecx > 0: _checkValsLoop
+	cmpl $0, %ecx			# if ecx > 0 : _checkValsLoop
 	jg	_checkValsLoop
 	
-	movl %ebp, %esp 	# if we get here everything is in order and we can return.
+	movl %ebp, %esp 		# if we get here everything is in order and we can return.
     pop %ebp 
     ret

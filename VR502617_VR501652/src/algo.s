@@ -1,6 +1,5 @@
 .section .data
 	tempfd: .long 0
-
 	colon: .asciz ":"
 	newLine: .asciz "\n"
 	conclusionemsg: .asciz "Conclusione: "
@@ -23,10 +22,9 @@ ALGO:
 
 	# 20(%ebp)				# sortingID
 	movl 16(%ebp), %ebx		# totalObjects
-	movl 12(%ebp), %eax		# tempfd. if != 0 then write to file
+	movl 12(%ebp), %eax		# tempfd. if (tempfd != 0) then write to file
 	movl %eax, tempfd
     movl 8(%ebp), %esi		# &ordiniArr
-
 
     pushl 20(%ebp)			# sortingID
     pushl %ebx				# totalObjects
@@ -34,7 +32,7 @@ ALGO:
     call bubbleSort
     addl $12, %esp
 
-	dec %ebx				# set N-1 for array values not size
+	dec %ebx				# Set N-1 for array index, not size
 	xor %ecx, %ecx			# currentTime index
 	xor %eax, %eax			# Penalty
 
@@ -47,16 +45,17 @@ ALGO:
 	shr $2, %ebx			# Reset ebx
 	jmp _newObject
 
+#------------------ Loop start ------------------
 _nextObject:
 	# Keep track of what object we are working with, to not go out of bounds.
 	cmpl $0, %ebx			# Check if we have cycled all the objects
     je _ALGODone
 	dec %ebx
 
-	cmpb %cl, DEADLINE_OFFSET(%esi)	# compare current time to deadline
+	cmpb %cl, DEADLINE_OFFSET(%esi)	# Compare current time to deadline
 	jge _calcNextObject
 
-	call calcPenalty		# if deadline is < current time then calcPenalty
+	call calcPenalty		# if deadline is < currentTime then calcPenalty
 
 _calcNextObject:
 	addl $4, %esi			# Move to the next object
@@ -69,7 +68,7 @@ _newObject:
 	movb DURATION_OFFSET(%esi), %dl	# store leftover duration
 	pushl %eax
 
-	# print ID:currentTime\n
+	# print("ID:currentTime\n")
     movzbl ID_OFFSET(%esi), %eax
 	pushl tempfd
     call printWRITEINT
@@ -78,12 +77,10 @@ _newObject:
 	pushl $colon
 	call printWRITESTR
 	addl $8, %esp
-
     movl %ecx, %eax
 	pushl tempfd
     call printWRITEINT
 	addl $4, %esp
-
 	pushl tempfd				# file to write
 	pushl $newLine
 	call printWRITESTR
@@ -96,18 +93,11 @@ _timeLoop:
 	cmpl $MAX_TIME, %ecx		# if currentTime = MAX_TIME then we are done.
 	je _ALGODone
 
-	dec %dl						# else time slot has been used by the item pointed to by esi 
-								# and we have to decrese it's duration.
+	dec %dl						# else time slot has been used by the item pointed to by esi and we have to decrese it's duration.
 	jle _nextObject				# if we now have duration = 0 then we advance to next object.
 
 	jmp _timeLoop				# else we contiunue the loop
-
-
-
-
-# TODO: writing to file option HERE. always if check no more call printSTR. JMP printALGOSTR
-# in print algo str IF writeFile.
-
+#------------------ Loop end ------------------
 
 _ALGODone:
 	cmpb %cl, DEADLINE_OFFSET(%esi)	# compare current time to deadline
@@ -159,13 +149,11 @@ calcPenalty: # Penalty = (current_time - deadline) * priority + Penalty. This is
 	push %ebx
 	push %ecx
 
-	movzbl DEADLINE_OFFSET(%esi), %ebx   # Load deadline into %ebx
-	subl %ebx, %ecx                   # current_time - deadline (result in %cl)
-
+	movzbl DEADLINE_OFFSET(%esi), %ebx	# Load deadline into %ebx
+	subl %ebx, %ecx						# current_time - deadline (result in %cl)
 	movzbl PRIORITY_OFFSET(%esi), %ebx  
-	imull %ebx, %ecx                   # (current_time - deadline) * priority (result in %cl)
-
-	addl %ecx, %eax                    # Penalty = (current_time - deadline) * priority + Penalty
+	imull %ebx, %ecx					# (current_time - deadline) * priority (result in %cl)
+	addl %ecx, %eax						# Penalty = (current_time - deadline) * priority + Penalty
                  
 	pop %ecx
 	pop %ebx

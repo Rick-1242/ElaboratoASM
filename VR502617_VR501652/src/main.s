@@ -32,31 +32,34 @@ _start:
 	testl %edx, %edx		# filename to write to
 	jz _readFileIO
 	pushl %ebx
-	movl $0101,	writeFile	# [O_WRONLY | O_CREAT | O_TRUNC]
-
-	# openFile in write create trunc mode
+	movl $0x241, writeFile	# The combination of the flags O_WRONLY | O_CREAT | O_TRUNC = 0x1 | 0x40 | 0x200 = 0x241(hex) == 0b1001000001(binary)
+	# openFile
 	pushl %edx
+
 	pushl writeFile
 	call openFile
 	addl $8, %esp
-
 	movl %eax, fd2			# file descritopr is returned in eax
+
 	popl %ebx
 
 _readFileIO:
+	# Open file
 	pushl %ebx
 	pushl $0				# read mode
 	call openFile
 	addl $8, %esp
-	movl %eax, fd1			# file descritopr is returned in eax
+	movl %eax, fd1			# file descriptor is returned in eax
 
+	# Read csv format file
 	leal ordiniArr, %eax
 	pushl fd1
 	pushl %eax
 	call readFile
 	addl $8, %esp
-	movl %edx, totalObjects
+	movl %edx, totalObjects	# save totalObjects in the array for the algo
 
+	# Close file
 	pushl fd1
 	call closeFile
 	addl $4, %esp
@@ -80,16 +83,16 @@ _mainMENU:
 	movb userInput, %al		# Only need the first byte
 	cmpb $51, %al			# userInput = "3" ? exit
 	je _exit
-	cmpb $50, %al
+	cmpb $50, %al			# userInput = "2" ? HPF
 	je _HPF
-	cmpb $49, %al
+	cmpb $49, %al			# userInput = "1" ? EDF
 	je _EDF
 
 	jmp _mainMENU
 
 #------------------ Option 3 -> _exit ------------------
 _exit:
-	cmpl $0, writeFile		# filename to write to
+	cmpl $0, writeFile		# if we have a file to write to then close it before exiting
 	je _keepExiting
 
 	pushl fd2
@@ -98,15 +101,16 @@ _exit:
 
 _keepExiting:
 	movl $1, %eax
-	xorl %ebx, %ebx
+	xorl %ebx, %ebx			# xorl %ebx, %ebx == movl $0, %ebx  but faster
 	int $0x80
 
 #------------------ Option 2 -> _HPF ------------------
 _HPF:
+	# print("Pianificazione HPF:\n")
 	leal msgHPF, %eax
 	pushl fd2				# file to write
 	pushl %eax
-	call printWRITESTR
+	call printWRITESTR		# Print && Write to file (if file is opened)
 	addl $8, %esp
 	
 	leal ordiniArr, %eax
@@ -121,10 +125,11 @@ _HPF:
 
 #------------------ Option 1 -> _EDF ------------------
 _EDF:
+	# print("Pianificazione EDF:\n")
 	leal msgEDF, %eax
 	pushl fd2				# file to write
 	pushl %eax
-	call printWRITESTR
+	call printWRITESTR		# Print && Write to file (if file is opened)
 	addl $8, %esp
 
 	leal ordiniArr, %eax
@@ -139,8 +144,10 @@ _EDF:
 
 #------------------ Error managment ------------------
 _noArgsExit:
+	# print("ERRORE: specificare un filename come argomento.\n")
 	leal noArgsExitmsg, %ecx
 	pushl %ecx
 	call printERR
 	addl $4, %esp 
+
 	jmp _exit
