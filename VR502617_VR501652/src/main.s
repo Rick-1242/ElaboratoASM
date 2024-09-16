@@ -1,8 +1,8 @@
 .section .data
 	#---------File I/O--------------
-	fd1: .long 0
+	fd1: .long 0		# used to read from file
 	userInput: .space 64
-	fd2: .long 0
+	fd2: .long 0		# used to write to file
 	#---------Testo-------------
 	menu: .asciz "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
 	msgHPF: .asciz "Pianificazione HPF:\n"
