@@ -1,0 +1,28 @@
+La relazione dovrà descrivere la struttura del codice (le strutture dati, le funzioni utilizzate, i file in cui è
+organizzato). Per le parti principali del programma, dovrà descrivere la logica del codice assembly
+prodotto. Infine, dovrà descrivere i test effettuati per validare la correttezza del software
+
+Il codice e la relazione vanno compressi in un unico file tarball denominato:
+
+VRXXXXXX_VRXXXXXX.tar.gz
+    VRXXXXXX_VRXXXXXX/
+        o src/
+        o obj/ (vuota)
+        o bin/ (vuota)
+        o Makefile
+        o Ordini/
+            ▪ EDF.txt
+            ▪ Both.txt
+            ▪ None.txt
+        o Relazione.pdf
+
+
+Per ottenere il pacchetto come richiesto:
+    1. Rinominare la cartella contenente tutto il materiale con il nome VRXXXXXX_VRXXXXXX.
+    2. Salire di un livello rispetto alla cartella e lanciare il comando:
+    $> tar cvfz VRXXXXXX_VRXXXXXX.tar.gz VRXXXXXX_VRXXXXXX/
+Ad esempio, se il gruppo è formato da due studenti con matricole VR123456 e VR654321, bisogna
+ottenere il file VR123456_VR654321.tar.gz, contenente la cartella VR123456_VR654321, mediante
+il comando: tar czfv VR123456_VR654321.tar.gz VR123456_VR654321/
+
+Un solo membro del gruppo deve effettuare la sottomissione.

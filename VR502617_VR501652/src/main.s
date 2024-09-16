@@ -148,6 +148,6 @@ _noArgsExit:
 	leal noArgsExitmsg, %ecx
 	pushl %ecx
 	call printERR
-	addl $4, %esp 
+	addl $4, %esp
 
 	jmp _exit

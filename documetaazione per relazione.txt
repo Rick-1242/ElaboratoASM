@@ -1,0 +1,1 @@
+Se nel file da legge ce : ",,". Allora il codice terpreta come se ci fosse: ",0,".
