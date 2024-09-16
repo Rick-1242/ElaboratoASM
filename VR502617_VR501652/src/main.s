@@ -16,7 +16,6 @@
 	outOfRange2: .asciz "' non rientra nelle specifice del progetto.\n"
 	#---------Offset------------
 	MAX_TOTAL_OBJECTS = 10	# 10 oggetti da 4 elemnti l'uno =  4 byte/oggeto
-	# TODO: test se funziona con piu di 10 cambaindo la costante. Dovrebbe.
 .section .bss
 	totalObjects: .long 0
 	ordiniArr: .fill MAX_TOTAL_OBJECTS, 4, 0
@@ -26,30 +25,14 @@
 	.global _start
 
 _start:
-	# Get argument 1
+	# ottieni il nome del file da leggere
 	popl %ebx
-	popl %ebx # argc[0]
-	popl %ebx # argc[1]
+	popl %ebx 
+	popl %ebx 
 	testl %ebx, %ebx
 	je _noArgsExit
 
-	# TODO: here we have to check if there is a second paramter to wrtie to file if so then we need to remember it so that we can pass it to the algo call that will then write to file
-	
-	# If we do this _openFile needs to be a funcion that takes writeFile as a parameter
-	# OLD stuff:
-		# Bonus print to file
-		# popl %edx
-		# testl %edx, %edx Not like this bro.
-		# je _noArgsExit
-		# inc writeFile
-		# jmp _open this time it opens as write
-		# The the printing to file ... and close
-	
-
-	# push %edx
-	# push (ordiniArr) / the address
-	jmp _openFile			# TODO: call _openFile would be cool and so openfile wopuld be in another file
-
+	jmp _openFile
 _mainMENU:
 	# Print menu
 	leal menu, %eax			
