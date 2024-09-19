@@ -1,26 +1,33 @@
 .section .data
-	#---------File I/O--------------
+  # Costanti
+	Oggetti_Totali_MAX = 10
+  # Testo
+	menu: .ascii "Scelga l'algoritmo di pianificazione: 1. EDF; 2. HPF; 3. Exit.\nAlgoritmo:"
+  menu_len: .long . - menu
+	HPF_msg: .ascii "Pianificazione HPF:\n"
+  HPF_msg_len: .long . - HPF_msg
+	EDF_msg: .ascii "Pianificazione EDF:\n"
+  EDF_msg_len: .long . - EDF_msg
+	no_arg_msg: .ascii "Specifichi un file da analizzare\n"
+  no_arg_msg_len: .long . - no_arg_msg
+	nome_sbagliato_msg: .ascii "Controlli che il file esista\n"
+  nome_sbagliato_msg_len: .long . - nome_sbagliato_msg
+	nan_msg: .ascii "Uno dei valori nel file non é un numero(NAN)\n"
+  nan_msg_len: .long . - nan_msg
+	manca_EOF_msg: .ascii "Questo errore viene lanciato se il numero di valori non é divisibile per 4.\nQuesto é di solito dovuto alla mancaza di una nuova linea alla fine del ultima righa. Oppre a piu o meno di 3 "," per riga.\nPerfavore inserica una nuova linea vuota infodo al file\n"
+  manca_EOF_msg_len: .long . - manca_EOF_msg
+  fuori_intervallo_msg: .ascii "Uno dei valori al interno del file non rientra nelle specifiche del progetto: " 
+  fuori_intervallo_msg_len: .long . - fuori_intervallo_msg
+  nuova_linea: .asciz "\n"
+  nuova_linea_len: .long . - nuova_linea
+  # I/O
 	fd: .long 0
-	userInput: .space 64
 	buffer: .asciz ""
-	#---------Testo-------------
-	menu: .asciz "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
-	msgHPF: .asciz "Pianificazione HPF:\n"
-	msgEDF: .asciz "Pianificazione EDF:\n"
-	noArgsExitmsg: .asciz "ERRORE: specificare un filename come argomento.\n"
-	invalidFilenamemsg: .asciz "ERROE: si assicuri che il filename specificato esista.\n"
-	overFlowmsg: .asciz "ERRORE: overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto.\n"
-	NANmsg: .asciz "ERROE: uno dei valori al interno del file non é un numero.\n"
-	missingEOFmsg: .asciz "ERRORE: end of file non alla fine di una nuova lina. Perfavore inserica una nuova linea vuota alla fine del file\n Oppure non 3 virgole per linea\n"
-	outOfRange1: .asciz "ERROE: il valore '" 
-	outOfRange2: .asciz "' non rientra nelle specifice del progetto.\n"
-	#---------Offset------------
-	MAX_TOTAL_OBJECTS = 10	# 10 oggetti da 4 elemnti l'uno =  4 byte/oggeto
+	input: .space 8
 .section .bss
-	totalObjects: .long 0
-	ordiniArr: .fill MAX_TOTAL_OBJECTS, 4, 0
-	writeFile: .long 0
-
+	valori_tot: .long 0
+	array: .fill Oggetti_Totali_MAX, 4, 0
+	scrivi: .long 0
 .section .text
 	.global _start
 
@@ -30,252 +37,237 @@ _start:
 	popl %ebx 
 	popl %ebx 
 	testl %ebx, %ebx
-	je _noArgsExit
-
-	jmp _openFile
-_mainMENU:
-	# Print menu
-	leal menu, %eax			
+	je NO_ARG
+	jmp OPEN
+MENU:
+	# menu
+	leal menu, %eax	
+  pushl menu_len
 	pushl %eax
-	call printSTR
-	addl $4, %esp
+	call STAMPA_STR
+	addl $8, %esp
 
-	# Read from stdin -> userInput
+	# leggi da stdin
 	movl $3, %eax			
 	movl $0, %ebx
-	movl $userInput, %ecx
-	movl $64, %edx
+	movl $input, %ecx
+	movl $8, %edx   # uguale a spazio per input
 	int $0x80
-	
-	# Handle userInput
-	movb userInput, %al		# Only need the first byte
-	cmpb $51, %al			# userInput = "3" ? exit
+
+	movb input, %al
+	cmpb $51, %al			# "3"
 	je _exit
-	cmpb $50, %al
-	je _HPF
-	cmpb $49, %al
-	je _EDF
+	cmpb $50, %al     # "2"
+	je HPF
+	cmpb $49, %al     # "1"
+	je EDF
+	jmp MENU
 
-	jmp _mainMENU
+EDF:	# Opzione 1
+	leal EDF_msg, %eax
+  pushl EDF_msg_len
+	pushl %eax
+	call STAMPA_STR
+	addl $8, %esp
 
-#------------------ Option 3 -> _exit ------------------
-_exit:
+	leal array, %eax
+	pushl valori_tot
+	pushl $2	# Scadenza
+	pushl %eax	
+	call ALGORITMO
+	addl $12, %esp
+	jmp MENU
+
+HPF:   # Opzione 2
+	leal HPF_msg, %eax
+  pushl HPF_msg_len
+	pushl %eax
+	call STAMPA_STR
+	addl $8, %esp
+
+	leal array, %eax
+	pushl valori_tot
+	pushl $3	# Priorita
+	pushl %eax
+	call ALGORITMO
+	addl $12, %esp
+	jmp MENU
+
+_exit:  # Opzione 3
 	movl $1, %eax
 	movl $0, %ebx
 	int $0x80
 
-#------------------ Option 2 -> _HPF ------------------
-_HPF:
-	leal msgHPF, %eax
-	pushl %eax
-	call printSTR
-	addl $4, %esp
-
-	leal ordiniArr, %eax
-	pushl $3	# sortingID = Priority
-	pushl totalObjects
-	pushl writeFile
-	pushl %eax
-	call ALGO
-	addl $12, %esp
-
-	jmp _mainMENU
-
-#------------------ Option 1 -> _EDF ------------------
-_EDF:
-	leal msgEDF, %eax
-	pushl %eax
-	call printSTR
-	addl $4, %esp
-
-	leal ordiniArr, %eax
-	pushl $2	# sortingID = Deadline
-	pushl totalObjects
-	pushl writeFile
-	pushl %eax	
-	call ALGO
-	addl $16, %esp
-
-	jmp _mainMENU
-
-
-#------------------ Error managment ------------------
-_noArgsExit:
-	leal noArgsExitmsg, %ecx
+NO_ARG:
+	leal no_arg_msg, %ecx
+  pushl no_arg_msg_len
 	pushl %ecx
-	call printERR
-	addl $4, %esp 
+	call STAMPA_STR
+	addl $8, %esp 
 	jmp _exit
 
-#------------------File processing------------------- TODO: Move to fileIO.s
-_openFile:
-    movl $5, %eax       	# Syscall open
-							# Nome del file gia in ebx
-    movzbl writeFile, %ecx	# Move zero-extended byte to long
-    int $0x80
 
-    cmpl $0, %eax 			# Se c'è un errore in apertura da errore
-    jl _invalidFilename
+# Lettura file
+OPEN: # Apre
+  xorl %ecx, %ecx
+  movl $5, %eax       # Syscall open
+  # Nome del file ebx
+  movb scrivi, %cl
+  int $0x80
+  cmpl $0, %eax 			# Se c'è un errore in apertura da errore
+  jl NOME_SBAGLIATO
 	movl %eax, fd
 
- 	xorl %esi, %esi 		# Clean esi(used as counter in _readLoop) and ecx(used as tempRis)
-	xorl %eax, %eax
+preLEGGI: # Prepara registiri per LEGGI
+ 	xorl %esi, %esi 		# Usato come contatore per valori_tot
+	xorl %eax, %eax     # usato come valore temporaneo per itoa
 
-	cmpl $1, writeFile		# JMP to _readLoop or to _writeLoop based on writeFile
-    jl _readLoop
-    jmp _writeLoop
-
-_closeFile:
-    movl $6, %eax
-    movl fd, %ecx
-    int $0x80
-	jmp _mainMENU			# TODO: Quando sara una funzione deve popare ebp e returnare.
-
-_readLoop:					# Gets and converts the data from the file to our array.
+LEGGI:  # Legge un dato alla volta e converte da argument ad integer poi, 
+        # alla fine del numero salva il valore nel array
 	pushl %eax
+  movl $3, %eax   # syscall read
+  movl fd, %ebx
+  leal buffer, %ecx
+  movl $1, %edx   # 1 carattere alla volta
+  int $0x80
 
-    movl $3, %eax        	# syscall read
-    movl fd, %ebx        	# File descriptor
-    movl $buffer, %ecx   	# same as leal buffer, %ecx
-    movl $1, %edx			# Lenght
-    int $0x80
-
-    cmpl $0, %eax       	# ERROR or EOF check -> close and back to menu
-	je _checkVals
-    jl _closeFileExit
-
-	movzbl buffer, %ebx
+  cmpl $0, %eax   # controllo fine file
+	jle CHECK_VALORI
+  # jl CHIUDI_FILE FIXME:
+  # xorl %ebx, %ebx FIXME:
+	movb buffer, %bl
 	popl %eax
-
-    cmpb $10, %bl			# Check if buffer char is (separator or LF or CR)
-    je _storeTemp	 
-	cmpb $13, %bl
-    je _readLoop	 
-	cmpb $44, %bl		
-    je _storeTemp			# If sep,  storeTemp and skip char
+  cmpb $10, %bl   # LF
+  je SALVA_VAL
+	cmpb $13, %bl   # CR
+  je LEGGI
+	cmpb $44, %bl   # ","
+  je SALVA_VAL
 
 	cmpb $48, %bl
-	jb _NAN
+	jb NAN         # controllo NAN
 	cmpb $57, %bl
-	ja _NAN
+	ja NAN
 
-	subb $48, %bl			# ascii -> int
-  	movl $10, %edx
-  	mulb %dl
-  	addb %bl, %al			
-	jc _overFlow	# If the result is over 255 it detecrs the overflow 
+	subb $48, %bl			# itoa
+  movl $10, %edx
+  mulb %dl
+  addb %bl, %al			
+  jmp LEGGI
 
-    jmp _readLoop
+SALVA_VAL:
+	movb %al, array(%esi)
+	movb $0, %al				  # azzera al per il prossimo numero
+	inc %esi              # vai al prossimo posto nel array
+	jmp LEGGI
 
-_storeTemp:
-	movb %al, ordiniArr(%esi)	# Move int to array position. Same as ordiniArr(,%ecx,1)
-	movb $0, %al				# Default value of int is 0 so ";;" == ";0;" in the file
-	inc %esi
-	jmp _readLoop
+CHECK_VALORI: # Controlla valori nel array e chiude il file
+	movl %esi, %eax
+	movl %eax, %ebx     # Salva eax
 
-_writeLoop:					# Prints and converts the data form array to our file.
-	jmp _closeFile
+  sarl $2, %ebx       # / 4
+  sall $2, %ebx       # x 4
+  cmpl %ebx, %eax     # Confronta il risultato con l'originale %eax
+  jne MANCA_EOF       # Salta se valori_tot non é divisibile per 4. 
+                      # Quindi gli oggeti non sono stati letti corretamente.
+                      # Questo é di solito dovuto alla mancaza di una nuova linea alla fine del ultima righa.
+                      # Oppre a piu o meno di 3 "," per riga.
+	dec	%esi
+	sar $2, %eax			  # elementi_tot / 4 = valori_tot
 
-#------------------Error managment--------------
+	movl %esi, %ebx     # conto per scrollare l'array
+	movl %eax, valori_tot	# Salvo per piu tardi.
+	xorl %eax, %eax
 
-_exitERROR:
+CICLO_CHECK_VALORI:
+	movb array(%ebx), %al # 1 <= P <= 5
+	cmpb $1, %al
+	jl FUORI_INTEVALLO
+	cmpb $5, %al
+	jg FUORI_INTEVALLO
+	dec %ebx
+	movb array(%ebx), %al # 1 <= S <= 100
+	cmpb $1, %al
+	jl FUORI_INTEVALLO
+	cmpb $100, %al
+	jg FUORI_INTEVALLO
+	dec %ebx
+	movb array(%ebx), %al # 1 <= D <= 10
+	cmpb $1, %al
+	jl FUORI_INTEVALLO
+	cmpb $10, %al
+	jg FUORI_INTEVALLO
+	dec %ebx
+	movb array(%ebx), %al # ID (1 <= ID <= 127)
+	cmpb $1, %al
+	jl FUORI_INTEVALLO
+	cmpb $127, %al
+	jg FUORI_INTEVALLO
+	dec %ebx
+	cmpl $0, %ebx
+	jg	CICLO_CHECK_VALORI
+  # quando ebx(il conto che diminuisce) arriva a 0 abbiamo controllato tutti i valori
+
+FINE_LETTURA: # se tutto si é correto si arriva qua.
+  movl $6, %eax
+  movl fd, %ecx
+  int $0x80
+	jmp MENU
+
+
+# Errori nel appertura
+ERRORE: # exit(1)
 	movl $1, %eax
 	movl $1, %ebx
 	int $0x80
 
-_invalidFilename:
-	leal invalidFilenamemsg, %ecx
-	pushl %ecx
-	call printERR
-	addl $4, %esp 
-	jmp _exitERROR
+NOME_SBAGLIATO:
+	leal nome_sbagliato_msg, %eax
+  pushl nome_sbagliato_msg_len
+	pushl %eax
+	call STAMPA_STR
+	addl $8, %esp 
+	jmp ERRORE
 
-_closeFileExit:
+# Errori nella lettura
+CHIUDI_FILE:
 	movl $6, %eax
-    movl fd, %ecx
-    int $0x80
-	jmp _exitERROR
+  movl fd, %ecx
+  int $0x80
 
-_overFlow:
-	leal overFlowmsg, %ecx
+  # exit(1)
+	movl $1, %eax
+	movl $1, %ebx   
+	int $0x80
+
+FUORI_INTEVALLO:
+	leal fuori_intervallo_msg, %ecx
+  pushl fuori_intervallo_msg_len
 	pushl %ecx
-	call printERR
-	addl $4, %esp 
-	jmp _closeFileExit
-
-_NAN:
-	leal NANmsg, %ecx
+	call STAMPA_STR
+	addl $8, %esp 
+  # numero in eax
+	call STAMPA_NUM
+	leal nuova_linea, %ecx
+  pushl nuova_linea_len
 	pushl %ecx
-	call printERR
-	addl $4, %esp 
-	jmp _closeFileExit
+	call STAMPA_STR
+	addl $8, %esp 
 
-_missingEOF:
-	leal missingEOFmsg, %ecx
-	pushl %ecx
-	call printERR
-	addl $4, %esp 
-	jmp _closeFileExit
+	jmp CHIUDI_FILE
 
+NAN:
+	leal nan_msg, %eax
+  pushl nan_msg_len
+	pushl %eax
+	call STAMPA_STR
+	addl $8, %esp
+	jmp CHIUDI_FILE
 
-_checkVals:	# Order of operaations not in locial order for better pipeline integration
-	movl %esi, %eax
-	movl %eax, %ebx
-	andl $3, %eax
-	jnz _missingEOF			# Jump if totalElements not divisible by 4 and therefor EOF is not on a new line. or smething wrong.
-	movl %ebx, %eax
-
-	dec	%esi
-	sar $2, %eax			# total Elements / 4 = totalObjects
-
-	movl %esi, %ecx			# Decremeting count
-	movl %eax, totalObjects	# For sorting algo
-	xorl %eax, %eax
-
-_checkValsLoop:
-	movb ordiniArr(%ecx), %al # 1 <= P <= 5
-	cmpb $1, %al
-	jl _outOfRange
-	cmpb $5, %al
-	jg _outOfRange
-
-	dec %ecx
-	movb ordiniArr(%ecx), %al # 1 <= S <= 100
-	cmpb $1, %al
-	jl _outOfRange
-	cmpb $100, %al
-	jg _outOfRange
-
-	dec %ecx
-	movb ordiniArr(%ecx), %al # 1 <= D <= 10
-	cmpb $1, %al
-	jl _outOfRange
-	cmpb $10, %al
-	jg _outOfRange
-
-	dec %ecx
-	movb ordiniArr(%ecx), %al # ID (1 <= ID <= 127)
-	cmpb $1, %al
-	jl _outOfRange
-	cmpb $127, %al
-	jg _outOfRange
-
-	dec %ecx
-	cmpl $0, %ecx			# if ecx > 0: _checkValsLoop
-	jg	_checkValsLoop
-	jmp _closeFile			# else _closeFile
-
-_outOfRange:
-	leal outOfRange1, %ecx
-	pushl %ecx
-	call printERR
-	addl $4, %esp 
-
-	call printINT
-
-	leal outOfRange2, %ecx
-	pushl %ecx
-	call printERR
-	addl $4, %esp 
-
-	jmp _closeFileExit
+MANCA_EOF:
+	leal manca_EOF_msg, %eax
+  pushl manca_EOF_msg_len
+	pushl %eax
+	call STAMPA_STR
+	addl $8, %esp
+	jmp CHIUDI_FILE

@@ -5,8 +5,6 @@ SRC_FILES = $(wildcard src/*.s)
 OBJ_FILES = $(patsubst src/%.s, obj/%.o, $(SRC_FILES))
 TARGET = bin/pianificatore
 
-#--------------------------------------
-
 all: $(TARGET)
 
 $(TARGET): $(OBJ_FILES)
@@ -15,10 +13,5 @@ $(TARGET): $(OBJ_FILES)
 obj/%.o: src/%.s
 	as $(AS_FLAGS) $(DEBUG) -o $@ $^
 
-#--------------------------------------
-
 clean:
 	rm -f obj/*.o $(TARGET)
-
-.PHONY: all clean
-
