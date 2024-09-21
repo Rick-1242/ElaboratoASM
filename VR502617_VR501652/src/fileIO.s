@@ -1,9 +1,9 @@
 .section .data
 	buffer: .asciz ""
-	invalidFilenamemsg: .asciz "ERROE: si assicuri che il filename specificato esista.\n"
-	overFlowmsg: .asciz "ERRORE: overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto.\n"
+	invalidFilenamemsg: .asciz "ERROE: assicurarsi che il filename specificato esista.\n"
+	overFlowmsg: .asciz "ERRORE: overflow rilevato, assicurarsi che i valori e la formattazione del file in input rispetti le specifiche del progetto.\n"
 	NANmsg: .asciz "ERROE: uno dei valori al interno del file non é un numero.\n"
-	missingEOFmsg: .asciz "ERRORE: end of file non alla fine di una nuova linea. Per favore inserisca una nuova linea vuota alla fine del file\n Oppure una delle righe nel file contiene più o meno di 3 separatori(",").\n"
+	missingEOFmsg: .asciz "ERRORE: end of file non alla fine di una nuova lina. Inserire una nuova linea vuota alla fine del file\n Oppure una delle righe nel file contiene piu o meno di 3 spearatori(",").\n"
 	outOfRange1: .asciz "ERROE: il valore '" 
 	outOfRange2: .asciz "' non rientra nelle specifiche del progetto.\n"
 .section .text
