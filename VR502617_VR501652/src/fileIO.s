@@ -3,9 +3,9 @@
 	invalidFilenamemsg: .asciz "ERROE: si assicuri che il filename specificato esista.\n"
 	overFlowmsg: .asciz "ERRORE: overflow rilevato, si assicuri che i valori e la formattazione del file in input rispetti le specifiche del progetto.\n"
 	NANmsg: .asciz "ERROE: uno dei valori al interno del file non é un numero.\n"
-	missingEOFmsg: .asciz "ERRORE: end of file non alla fine di una nuova lina. Perfavore inserica una nuova linea vuota alla fine del file\n Oppure una delle righe nel file contiene piu o meno di 3 spearatori.\n"
+	missingEOFmsg: .asciz "ERRORE: end of file non alla fine di una nuova linea. Per favore inserisca una nuova linea vuota alla fine del file\n Oppure una delle righe nel file contiene più o meno di 3 separatori(",").\n"
 	outOfRange1: .asciz "ERROE: il valore '" 
-	outOfRange2: .asciz "' non rientra nelle specifice del progetto.\n"
+	outOfRange2: .asciz "' non rientra nelle specifiche del progetto.\n"
 .section .text
     .globl openFile
 	.globl closeFile
@@ -169,7 +169,7 @@ _checkVals:	# Checks the values read from thehe file to determine if they are wi
 	movl %edi, %eax
 	movl %eax, %ebx
 	andl $3, %eax
-	jnz _missingEOF			# Jump if totalElements not divisible by 4 and therefore EOF is not on a new line. or smething wrong.
+	jnz _missingEOF			# Jump if totalElements not divisible by 4 and therefore EOF is not on a new line. or something wrong.
 	movl %ebx, %eax
 
 	dec	%edi
