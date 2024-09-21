@@ -4,7 +4,7 @@
 	userInput: .space 64
 	fd2: .long 0		# used to write to file
 	#---------Testo-------------
-	menu: .asciz "Scelga l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
+	menu: .asciz "Scegliere l'algoritmo o exit:\n1. Earliest Deadline First (EDF)\n2. Highest Priority First (HPF)\n3. Exit\nInput:"
 	msgHPF: .asciz "Pianificazione HPF:\n"
 	msgEDF: .asciz "Pianificazione EDF:\n"
 	noArgsExitmsg: .asciz "ERRORE: specificare un filename come argomento.\n"
